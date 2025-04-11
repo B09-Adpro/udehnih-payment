@@ -16,5 +16,7 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
           cache: 'gradle'
+      - name: Give permission to gradlew
+        run:  chmod +x gradlew
       - name: Run unit tests
         run:  ./gradlew test

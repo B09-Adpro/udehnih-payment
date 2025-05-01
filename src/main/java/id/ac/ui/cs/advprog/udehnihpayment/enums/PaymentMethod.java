@@ -10,6 +10,15 @@ public enum PaymentMethod {
         this.value = value;
     }
     
+    public String getValue() {
+        return value;
+    }
+    
+    @Override
+    public String toString() {
+        return value;
+    }
+    
     public static boolean contains(String text) {
         for (PaymentMethod paymentMethod : PaymentMethod.values()) {
             if (paymentMethod.value.equalsIgnoreCase(text)) {
@@ -17,5 +26,14 @@ public enum PaymentMethod {
             }
         }
         return false;
+    }
+    
+    public static PaymentMethod fromString(String text) {
+        for (PaymentMethod paymentMethod : PaymentMethod.values()) {
+            if (paymentMethod.value.equalsIgnoreCase(text)) {
+                return paymentMethod;
+            }
+        }
+        throw new IllegalArgumentException("No payment method with value " + text + " found");
     }
 }

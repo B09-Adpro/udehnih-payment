@@ -5,6 +5,8 @@ import id.ac.ui.cs.advprog.udehnihpayment.service.PaymentService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +44,17 @@ public class PaymentController {
     public ResponseEntity<List<Payment>> getTransactionHistory(@RequestHeader("X-User-Id") String userId) {
         List<Payment> payments = paymentService.getPaymentsByUser(userId);
         return ResponseEntity.ok(payments);
+    }
+
+    // GET /api/payments/methods
+    @GetMapping("/methods")
+    public ResponseEntity<?> getPaymentMethods() {
+        try {
+            List<String> methods = paymentService.getPaymentMethods();
+            return ResponseEntity.ok(methods);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @Data

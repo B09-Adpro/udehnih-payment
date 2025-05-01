@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,9 +34,10 @@ public class PaymentServiceTest {
 
     // UNHAPPY PATH: No payment methods available
     @Test
-    public void getPaymentMethods_NoAvailableMethods() {
+    public void getPaymentMethods_DoesNotContainInvalidMethods() {
         List<String> result = paymentService.getPaymentMethods();
         
-        assertEquals(0, result.size());
+        assertFalse(result.contains("InvalidMethod"));
+        assertFalse(result.contains("Cash"));
     }
 }

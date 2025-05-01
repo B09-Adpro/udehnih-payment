@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Arrays;
 
 @Service
 public class PaymentServiceImpl implements PaymentService {
@@ -40,6 +41,11 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public List<Payment> getPaymentsByUser(String userId) {
         return paymentRepository.findAllByUserId(userId);
+    }
+
+    @Override
+    public List<String> getPaymentMethods() {
+        return Arrays.asList("BankTransfer", "CreditCard");
     }
 
     // -- Strategy Pattern Implementation --

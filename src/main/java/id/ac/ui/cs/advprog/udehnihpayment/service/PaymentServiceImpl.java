@@ -1,12 +1,14 @@
 package id.ac.ui.cs.advprog.udehnihpayment.service;
 
+import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentMethod;
 import id.ac.ui.cs.advprog.udehnihpayment.model.Payment;
 import id.ac.ui.cs.advprog.udehnihpayment.repository.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PaymentServiceImpl implements PaymentService {
@@ -21,11 +23,13 @@ public class PaymentServiceImpl implements PaymentService {
         Payment saved = paymentRepository.save(payment);
 
         PaymentStrategy strategy;
-        switch (saved.getPaymentMethod()) {
-            case "BankTransfer":
+        PaymentMethod method = PaymentMethod.fromString(saved.getPaymentMethod());
+        
+        switch (method) {
+            case BANK_TRANSFER:
                 strategy = new BankTransferPaymentStrategy();
                 break;
-            case "CreditCard":
+            case CREDIT_CARD:
                 strategy = new CreditCardPaymentStrategy();
                 break;
             default:
@@ -45,11 +49,12 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public List<String> getPaymentMethods() {
-        return Arrays.asList("BankTransfer", "CreditCard");
+        return Arrays.stream(PaymentMethod.values())
+               .map(PaymentMethod::getValue)
+               .collect(Collectors.toList());
     }
 
     // -- Strategy Pattern Implementation --
-
     private interface PaymentStrategy {
         String generateInstructions(Payment payment);
     }

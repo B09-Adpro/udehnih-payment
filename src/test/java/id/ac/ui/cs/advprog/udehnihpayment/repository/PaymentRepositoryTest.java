@@ -57,4 +57,31 @@ public class PaymentRepositoryTest {
         Payment result = paymentRepository.findByIdTransaksi(9999L);
         assertNull(result);
     }
+
+    @Test
+    public void testFindAndUpdatePayment() {
+        // Create and save a payment
+        Payment payment = Payment.builder()
+                .courseId(42L)
+                .userId("user123")
+                .coursePrice(new BigDecimal("50000"))
+                .paymentMethod("BankTransfer")
+                .paymentStatus("PENDING")
+                .build();
+
+        Payment savedPayment = paymentRepository.save(payment);
+        
+        // Find the payment
+        Payment foundPayment = paymentRepository.findByIdTransaksi(savedPayment.getIdTransaksi());
+        assertNotNull(foundPayment);
+        assertEquals("PENDING", foundPayment.getPaymentStatus());
+        
+        // Update payment status
+        foundPayment.setPaymentStatus("PAID");
+        paymentRepository.save(foundPayment);
+        
+        // Verify update
+        Payment updatedPayment = paymentRepository.findByIdTransaksi(savedPayment.getIdTransaksi());
+        assertEquals("PAID", updatedPayment.getPaymentStatus());
+    }
 }

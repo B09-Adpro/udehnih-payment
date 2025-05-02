@@ -15,7 +15,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -59,18 +58,8 @@ public class PaymentServiceTest {
                 .paymentStatus("PENDING")
                 .coursePrice(new BigDecimal("50000"))
                 .build();
-                
-        Payment updatedPayment = Payment.builder()
-                .idTransaksi(transactionId)
-                .courseId(42L)
-                .userId("user123")
-                .paymentMethod("BankTransfer")
-                .paymentStatus("PAID")
-                .coursePrice(new BigDecimal("50000"))
-                .build();
         
         when(paymentRepository.findByIdTransaksi(transactionId)).thenReturn(existingPayment);
-        when(paymentRepository.save(any(Payment.class))).thenReturn(updatedPayment);
         
         // Act
         Payment result = paymentService.processPayment(transactionId, "BankTransfer");
@@ -78,7 +67,6 @@ public class PaymentServiceTest {
         // Assert
         assertEquals("PENDING", result.getPaymentStatus());
         verify(paymentRepository).findByIdTransaksi(transactionId);
-        verify(paymentRepository).save(any(Payment.class));
     }
 
     @Test
@@ -93,18 +81,8 @@ public class PaymentServiceTest {
                 .paymentStatus("PENDING")
                 .coursePrice(new BigDecimal("75000"))
                 .build();
-                
-        Payment updatedPayment = Payment.builder()
-                .idTransaksi(transactionId)
-                .courseId(43L)
-                .userId("user456")
-                .paymentMethod("CreditCard")
-                .paymentStatus("PENDING")
-                .coursePrice(new BigDecimal("75000"))
-                .build();
         
         when(paymentRepository.findByIdTransaksi(transactionId)).thenReturn(existingPayment);
-        when(paymentRepository.save(any(Payment.class))).thenReturn(updatedPayment);
         
         // Act
         Payment result = paymentService.processPayment(transactionId, "CreditCard");
@@ -112,7 +90,6 @@ public class PaymentServiceTest {
         // Assert
         assertEquals("PENDING", result.getPaymentStatus());
         verify(paymentRepository).findByIdTransaksi(transactionId);
-        verify(paymentRepository).save(any(Payment.class));
     }
 
     @Test

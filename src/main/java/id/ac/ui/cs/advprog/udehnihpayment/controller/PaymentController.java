@@ -1,5 +1,6 @@
 package id.ac.ui.cs.advprog.udehnihpayment.controller;
 
+import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentMethod;
 import id.ac.ui.cs.advprog.udehnihpayment.model.Payment;
 import id.ac.ui.cs.advprog.udehnihpayment.service.PaymentService;
 import lombok.AllArgsConstructor;
@@ -54,6 +55,44 @@ public class PaymentController {
             return ResponseEntity.ok(methods);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/{transactionId}/bank-transfer")
+    public ResponseEntity<?> processBankTransferPayment(@PathVariable Long transactionId) {
+        try {
+            Payment processedPayment = paymentService.processPayment(
+                    transactionId, 
+                    PaymentMethod.BANK_TRANSFER.getValue());
+            return ResponseEntity.ok(processedPayment);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error processing payment: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/{transactionId}/credit-card")
+    public ResponseEntity<?> processCreditCardPayment(@PathVariable Long transactionId) {
+        try {
+            Payment processedPayment = paymentService.processPayment(
+                    transactionId, 
+                    PaymentMethod.CREDIT_CARD.getValue());
+            return ResponseEntity.ok(processedPayment);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error processing payment: " + e.getMessage());
         }
     }
 

@@ -54,9 +54,63 @@ public class PaymentServiceImpl implements PaymentService {
                .collect(Collectors.toList());
     }
 
+    @Override
+    public Payment processPayment(Long transactionId, String paymentMethod) {
+        Payment payment = paymentRepository.findByIdTransaksi(transactionId);
+        if (payment == null) {
+            throw new IllegalArgumentException("Payment with ID " + transactionId + " not found");
+        }
+        
+        if (!payment.getPaymentMethod().equals(paymentMethod)) {
+            throw new IllegalArgumentException("Payment method mismatch. Expected: " + 
+                payment.getPaymentMethod() + ", Received: " + paymentMethod);
+        }
+        
+        if (!payment.getPaymentStatus().equals("PENDING")) {
+            throw new IllegalStateException("Payment already processed. Current status: " + 
+                payment.getPaymentStatus());
+        }
+        
+        // Process payment logic based on payment method
+        PaymentMethod method = PaymentMethod.fromString(paymentMethod);
+        PaymentStrategy strategy;
+        
+        switch (method) {
+            case BANK_TRANSFER:
+                strategy = new BankTransferPaymentStrategy();
+                break;
+            case CREDIT_CARD:
+                strategy = new CreditCardPaymentStrategy();
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported payment method: " + method);
+        }
+        
+        // Process the payment using the strategy
+        String result = processPaymentWithStrategy(payment, strategy);
+        System.out.println("Payment processing result: " + result);
+        
+        // Update status to PAID
+        payment.setPaymentStatus("PAID");
+        
+        // Save and return the updated payment
+        return paymentRepository.save(payment);
+    }
+
+    private String processPaymentWithStrategy(Payment payment, PaymentStrategy strategy) {
+        // In a real application, this would integrate with payment gateway APIs
+        return strategy.processPayment(payment);
+    }
+
     // -- Strategy Pattern Implementation --
     private interface PaymentStrategy {
         String generateInstructions(Payment payment);
+
+        default String processPayment(Payment payment) {
+            return "Payment for course ID " + payment.getCourseId() + 
+                   " with amount " + payment.getCoursePrice() + 
+                   " processed successfully.";
+        }
     }
 
     private class BankTransferPaymentStrategy implements PaymentStrategy {

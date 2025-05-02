@@ -8,4 +8,5 @@ public interface PaymentService {
     Payment createPayment(Payment payment);
     List<Payment> getPaymentsByUser(String userId);
     List<String> getPaymentMethods();
+    Payment processPayment(Long transactionId, String paymentMethod);
 }

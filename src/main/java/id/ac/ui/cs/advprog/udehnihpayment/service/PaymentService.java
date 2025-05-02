@@ -9,4 +9,6 @@ public interface PaymentService {
     List<Payment> getPaymentsByUser(String userId);
     List<String> getPaymentMethods();
     Payment processPayment(Long transactionId, String paymentMethod);
+    Payment findByIdTransaksi(Long transactionId);
+    Payment savePayment(Payment payment);
 }

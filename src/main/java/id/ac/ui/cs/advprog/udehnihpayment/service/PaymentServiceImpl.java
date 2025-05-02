@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.udehnihpayment.service;
 
 import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentMethod;
+import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentStatus;
 import id.ac.ui.cs.advprog.udehnihpayment.model.Payment;
 import id.ac.ui.cs.advprog.udehnihpayment.repository.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public Payment createPayment(Payment payment) {
         // Set status awal
-        payment.setPaymentStatus("PENDING");
+        payment.setPaymentStatus(PaymentStatus.PENDING.getValue());
         Payment saved = paymentRepository.save(payment);
 
         PaymentStrategy strategy;
@@ -66,12 +67,12 @@ public class PaymentServiceImpl implements PaymentService {
                 payment.getPaymentMethod() + ", Received: " + paymentMethod);
         }
         
-        if (!payment.getPaymentStatus().equals("PENDING")) {
-            throw new IllegalStateException("Payment already processed. Current status: " + 
+        // Only validate that status is PENDING, don't change it
+        if (!payment.getPaymentStatus().equals(PaymentStatus.PENDING.getValue())) {
+            throw new IllegalStateException("Payment cannot be processed. Current status: " + 
                 payment.getPaymentStatus());
         }
         
-        // Process payment logic based on payment method
         PaymentMethod method = PaymentMethod.fromString(paymentMethod);
         PaymentStrategy strategy;
         
@@ -86,19 +87,23 @@ public class PaymentServiceImpl implements PaymentService {
                 throw new IllegalArgumentException("Unsupported payment method: " + method);
         }
         
-        // Process the payment using the strategy
         String result = processPaymentWithStrategy(payment, strategy);
         System.out.println("Payment processing result: " + result);
         
-        // Update status to PAID
-        payment.setPaymentStatus("PAID");
-        
-        // Save and return the updated payment
+        return payment;
+    }
+
+    @Override
+    public Payment findByIdTransaksi(Long transactionId) {
+        return paymentRepository.findByIdTransaksi(transactionId);
+    }
+
+    @Override
+    public Payment savePayment(Payment payment) {
         return paymentRepository.save(payment);
     }
 
     private String processPaymentWithStrategy(Payment payment, PaymentStrategy strategy) {
-        // In a real application, this would integrate with payment gateway APIs
         return strategy.processPayment(payment);
     }
 

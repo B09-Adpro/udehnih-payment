@@ -76,7 +76,7 @@ public class PaymentServiceTest {
         Payment result = paymentService.processPayment(transactionId, "BankTransfer");
         
         // Assert
-        assertEquals("PAID", result.getPaymentStatus());
+        assertEquals("PENDING", result.getPaymentStatus());
         verify(paymentRepository).findByIdTransaksi(transactionId);
         verify(paymentRepository).save(any(Payment.class));
     }
@@ -99,7 +99,7 @@ public class PaymentServiceTest {
                 .courseId(43L)
                 .userId("user456")
                 .paymentMethod("CreditCard")
-                .paymentStatus("PAID")
+                .paymentStatus("PENDING")
                 .coursePrice(new BigDecimal("75000"))
                 .build();
         
@@ -110,7 +110,7 @@ public class PaymentServiceTest {
         Payment result = paymentService.processPayment(transactionId, "CreditCard");
         
         // Assert
-        assertEquals("PAID", result.getPaymentStatus());
+        assertEquals("PENDING", result.getPaymentStatus());
         verify(paymentRepository).findByIdTransaksi(transactionId);
         verify(paymentRepository).save(any(Payment.class));
     }

@@ -43,6 +43,7 @@ dependencies {
 	testImplementation("org.mockito:mockito-inline:$mockitoVersion")
 	testImplementation("org.mockito:mockito-junit-jupiter:$mockitoVersion")
 	runtimeOnly ("com.h2database:h2")
+	runtimeOnly("org.postgresql:postgresql")
 }
 
 tasks.register<Test>("unitTest") {

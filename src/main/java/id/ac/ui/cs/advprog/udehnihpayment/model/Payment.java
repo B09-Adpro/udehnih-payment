@@ -21,21 +21,29 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID transactionId;
 
+    @Column(nullable = false)
     private UUID course;
 
+    @Column(nullable = false)
     private UUID userId;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private PaymentStatus paymentStatus;
 
+    @Column(nullable = false)
     private BigDecimal coursePrice;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private PaymentMethod paymentMethod;
 
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    @Embedded
+    private PaymentDetails paymentDetails;
 
     @PrePersist
     public void prePersist() {

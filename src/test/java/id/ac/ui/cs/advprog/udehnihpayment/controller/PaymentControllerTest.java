@@ -54,7 +54,7 @@ public class PaymentControllerTest {
                 .paymentMethod(PaymentMethod.BANK_TRANSFER)
                 .paymentStatus(PaymentStatus.PAID)
                 .coursePrice(new BigDecimal("50000"))
-                .user(userId)
+                .userId(userId)
                 .build();
     }
 
@@ -89,7 +89,7 @@ public class PaymentControllerTest {
         Payment updatedPayment = Payment.builder()
                 .transactionId(transactionId)
                 .course(courseId)
-                .user(userId)
+                .userId(userId)
                 .paymentMethod(PaymentMethod.BANK_TRANSFER)
                 .paymentStatus(PaymentStatus.PENDING)
                 .coursePrice(new BigDecimal("50000"))
@@ -113,7 +113,7 @@ public class PaymentControllerTest {
         Payment updatedPayment = Payment.builder()
                 .transactionId(transactionId)
                 .course(courseId)
-                .user(userId)
+                .userId(userId)
                 .paymentMethod(PaymentMethod.CREDIT_CARD)
                 .paymentStatus(PaymentStatus.PENDING)
                 .coursePrice(new BigDecimal("50000"))
@@ -144,33 +144,33 @@ public class PaymentControllerTest {
     @Test
     public void testGetTransactionDetails_Success() throws Exception {
         // Mock the service to return the sample payment
-        when(paymentService.findByIdTransaksi(eq(transactionId))).thenReturn(payment);
+        when(paymentService.findByTransactionId(eq(transactionId))).thenReturn(payment);
 
         // Perform the GET request and verify the response
         mockMvc.perform(get("/api/payments/{transactionId}", transactionId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())  // 200 OK
                 .andExpect(jsonPath("$.transactionId").value(transactionId.toString()))
-                .andExpect(jsonPath("$.user").value(userId.toString()))
+                .andExpect(jsonPath("$.userId").value(userId.toString()))
                 .andExpect(jsonPath("$.paymentStatus").value("PAID"));
     }
 
     @Test
     public void testGetTransactionDetails_NotFound() throws Exception {
         // Mock the service to return null for non-existing transaction
-        when(paymentService.findByIdTransaksi(eq(transactionId))).thenReturn(null);
+        when(paymentService.findByTransactionId(eq(transactionId))).thenReturn(null);
 
         // Perform the GET request and verify the response
         mockMvc.perform(get("/api/payments/{transactionId}", transactionId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())  // 404 Not Found
-                .andExpect(content().string(""));  // Empty response body
+                .andExpect(content().string("Transaction Not Found"));
     }
 
     @Test
     public void testGetTransactionDetails_InternalServerError() throws Exception {
         // Mock the service to throw an exception
-        when(paymentService.findByIdTransaksi(eq(transactionId))).thenThrow(new RuntimeException("Unexpected error"));
+        when(paymentService.findByTransactionId(eq(transactionId))).thenThrow(new RuntimeException("Unexpected error"));
 
         // Perform the GET request and verify the response
         mockMvc.perform(get("/api/payments/{transactionId}", transactionId)

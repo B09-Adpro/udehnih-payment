@@ -35,7 +35,7 @@ public class PaymentController {
                                                  @RequestHeader("X-User-Id") UUID userId) {
         Payment payment = Payment.builder()
                 .course(UUID.fromString("a8e376a9-3754-47f9-9dd1-3191a67828d7"))
-                .user(userId)
+                .userId(userId)
                 .coursePrice(new BigDecimal("50000"))
                 .paymentMethod(PaymentMethod.BANK_TRANSFER)
                 .paymentStatus(PaymentStatus.PENDING)
@@ -46,7 +46,7 @@ public class PaymentController {
     }
 
     @GetMapping("/history")
-    public ResponseEntity<List<Payment>> getTransactionHistory(@RequestHeader("X-User-Id") String userId) {
+    public ResponseEntity<List<Payment>> getTransactionHistory(@RequestHeader("X-User-Id") UUID userId) {
         List<Payment> payments = paymentService.getPaymentsByUser(userId);
         return ResponseEntity.ok(payments);
     }

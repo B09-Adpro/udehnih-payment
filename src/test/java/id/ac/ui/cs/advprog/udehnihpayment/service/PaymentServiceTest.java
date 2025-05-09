@@ -58,20 +58,20 @@ public class PaymentServiceTest {
         Payment existingPayment = Payment.builder()
                 .transactionId(transactionId)
                 .course(courseId)
-                .user(userId)
+                .userId(userId)
                 .paymentMethod(PaymentMethod.BANK_TRANSFER)
                 .paymentStatus(PaymentStatus.PENDING)
                 .coursePrice(new BigDecimal("50000"))
                 .build();
         
-        when(paymentRepository.findByIdTransaksi(transactionId)).thenReturn(existingPayment);
+        when(paymentRepository.findByTransactionId(transactionId)).thenReturn(existingPayment);
         
         // Act
-        Payment result = paymentService.processPayment(transactionId, "BankTransfer");
+        Payment result = paymentService.processPayment(transactionId, PaymentMethod.BANK_TRANSFER.toString());
         
         // Assert
         assertEquals("PENDING", result.getPaymentStatus().toString());
-        verify(paymentRepository).findByIdTransaksi(transactionId);
+        verify(paymentRepository).findByTransactionId(transactionId);
     }
 
     @Test
@@ -83,27 +83,25 @@ public class PaymentServiceTest {
         Payment existingPayment = Payment.builder()
                 .transactionId(transactionId)
                 .course(courseId)
-                .user(userId)
+                .userId(userId)
                 .paymentMethod(PaymentMethod.CREDIT_CARD)
                 .paymentStatus(PaymentStatus.PENDING)
                 .coursePrice(new BigDecimal("50000"))
                 .build();
         
-        when(paymentRepository.findByIdTransaksi(transactionId)).thenReturn(existingPayment);
-        
-        // Act
-        Payment result = paymentService.processPayment(transactionId, "CreditCard");
-        
-        // Assert
+        when(paymentRepository.findByTransactionId(transactionId)).thenReturn(existingPayment);
+
+        Payment result = paymentService.processPayment(transactionId, PaymentMethod.CREDIT_CARD.toString());
+
         assertEquals("PENDING", result.getPaymentStatus().toString());
-        verify(paymentRepository).findByIdTransaksi(transactionId);
+        verify(paymentRepository).findByTransactionId(transactionId);
     }
 
     @Test
     public void processPayment_NotFound_ThrowsException() {
         // Arrange
         UUID transactionId = UUID.fromString("17e18d66-4974-49cb-a3d2-f33ee33ebdd1");
-        when(paymentRepository.findByIdTransaksi(transactionId)).thenReturn(null);
+        when(paymentRepository.findByTransactionId(transactionId)).thenReturn(null);
         
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
@@ -122,13 +120,13 @@ public class PaymentServiceTest {
         Payment existingPayment = Payment.builder()
                 .transactionId(transactionId)
                 .course(courseId)
-                .user(userId)
+                .userId(userId)
                 .paymentMethod(PaymentMethod.BANK_TRANSFER)
                 .paymentStatus(PaymentStatus.PENDING)
                 .coursePrice(new BigDecimal("50000"))
                 .build();
         
-        when(paymentRepository.findByIdTransaksi(transactionId)).thenReturn(existingPayment);
+        when(paymentRepository.findByTransactionId(transactionId)).thenReturn(existingPayment);
         
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {

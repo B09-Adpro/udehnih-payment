@@ -18,7 +18,7 @@ public class RefundTest {
         Payment payment = Payment.builder()
                 .transactionId(UUID.fromString("17e18d66-4974-49cb-a3d2-f33ee33ebdd1"))
                 .course(UUID.fromString("36c35311-73af-47c1-9bfc-1a3d13683723"))
-                .user(UUID.fromString("8eed0cfb-b550-49e7-a1bd-bee838c08ba7"))
+                .userId(UUID.fromString("8eed0cfb-b550-49e7-a1bd-bee838c08ba7"))
                 .paymentMethod(PaymentMethod.BANK_TRANSFER)
                 .paymentStatus(PaymentStatus.PENDING)
                 .coursePrice(new BigDecimal("50000"))

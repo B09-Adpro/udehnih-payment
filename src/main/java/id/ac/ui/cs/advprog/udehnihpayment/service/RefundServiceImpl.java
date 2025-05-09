@@ -21,7 +21,7 @@ public class RefundServiceImpl implements RefundService {
 
     @Override
     public Refund requestRefund(UUID transactionId, String reason, String details) {
-        Payment payment = paymentRepository.findByIdTransaksi(transactionId);
+        Payment payment = paymentRepository.findByTransactionId(transactionId);
 
         if (payment == null) {
             throw new RuntimeException("Payment not found for transactionId: " + transactionId);

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,11 +21,11 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public Payment createPayment(Payment payment) {
         // Set status awal
-        payment.setPaymentStatus(PaymentStatus.PENDING.getValue());
+        payment.setPaymentStatus(PaymentStatus.PENDING);
         Payment saved = paymentRepository.save(payment);
 
         PaymentStrategy strategy;
-        PaymentMethod method = PaymentMethod.fromString(saved.getPaymentMethod());
+        PaymentMethod method = PaymentMethod.fromString(saved.getPaymentMethod().toString());
         
         switch (method) {
             case BANK_TRANSFER:
@@ -56,7 +57,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public Payment processPayment(Long transactionId, String paymentMethod) {
+    public Payment processPayment(UUID transactionId, String paymentMethod) {
         Payment payment = paymentRepository.findByIdTransaksi(transactionId);
         if (payment == null) {
             throw new IllegalArgumentException("Payment with ID " + transactionId + " not found");
@@ -94,7 +95,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public Payment findByIdTransaksi(Long transactionId) {
+    public Payment findByIdTransaksi(UUID transactionId) {
         return paymentRepository.findByIdTransaksi(transactionId);
     }
 
@@ -112,7 +113,7 @@ public class PaymentServiceImpl implements PaymentService {
         String generateInstructions(Payment payment);
 
         default String processPayment(Payment payment) {
-            return "Payment for course ID " + payment.getCourseId() + 
+            return "Payment for course ID " + payment.getCourse() +
                    " with amount " + payment.getCoursePrice() + 
                    " processed successfully.";
         }

@@ -1,5 +1,7 @@
 package id.ac.ui.cs.advprog.udehnihpayment.service;
 
+import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentMethod;
+import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentStatus;
 import id.ac.ui.cs.advprog.udehnihpayment.model.Payment;
 import id.ac.ui.cs.advprog.udehnihpayment.repository.PaymentRepository;
 import org.junit.jupiter.api.Test;
@@ -10,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -49,13 +52,15 @@ public class PaymentServiceTest {
     @Test
     public void processPayment_BankTransfer_HappyPath() {
         // Arrange
-        Long transactionId = 1L;
+        UUID transactionId = UUID.randomUUID();
+        UUID courseId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         Payment existingPayment = Payment.builder()
-                .idTransaksi(transactionId)
-                .courseId(42L)
-                .userId("user123")
-                .paymentMethod("BankTransfer")
-                .paymentStatus("PENDING")
+                .transactionId(transactionId)
+                .course(courseId)
+                .user(userId)
+                .paymentMethod(PaymentMethod.BANK_TRANSFER)
+                .paymentStatus(PaymentStatus.PENDING)
                 .coursePrice(new BigDecimal("50000"))
                 .build();
         
@@ -65,21 +70,23 @@ public class PaymentServiceTest {
         Payment result = paymentService.processPayment(transactionId, "BankTransfer");
         
         // Assert
-        assertEquals("PENDING", result.getPaymentStatus());
+        assertEquals("PENDING", result.getPaymentStatus().toString());
         verify(paymentRepository).findByIdTransaksi(transactionId);
     }
 
     @Test
     public void processPayment_CreditCard_HappyPath() {
         // Arrange
-        Long transactionId = 2L;
+        UUID transactionId = UUID.randomUUID();
+        UUID courseId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         Payment existingPayment = Payment.builder()
-                .idTransaksi(transactionId)
-                .courseId(43L)
-                .userId("user456")
-                .paymentMethod("CreditCard")
-                .paymentStatus("PENDING")
-                .coursePrice(new BigDecimal("75000"))
+                .transactionId(transactionId)
+                .course(courseId)
+                .user(userId)
+                .paymentMethod(PaymentMethod.CREDIT_CARD)
+                .paymentStatus(PaymentStatus.PENDING)
+                .coursePrice(new BigDecimal("50000"))
                 .build();
         
         when(paymentRepository.findByIdTransaksi(transactionId)).thenReturn(existingPayment);
@@ -88,14 +95,14 @@ public class PaymentServiceTest {
         Payment result = paymentService.processPayment(transactionId, "CreditCard");
         
         // Assert
-        assertEquals("PENDING", result.getPaymentStatus());
+        assertEquals("PENDING", result.getPaymentStatus().toString());
         verify(paymentRepository).findByIdTransaksi(transactionId);
     }
 
     @Test
     public void processPayment_NotFound_ThrowsException() {
         // Arrange
-        Long transactionId = 999L;
+        UUID transactionId = UUID.fromString("17e18d66-4974-49cb-a3d2-f33ee33ebdd1");
         when(paymentRepository.findByIdTransaksi(transactionId)).thenReturn(null);
         
         // Act & Assert
@@ -109,13 +116,15 @@ public class PaymentServiceTest {
     @Test
     public void processPayment_MethodMismatch_ThrowsException() {
         // Arrange
-        Long transactionId = 1L;
+        UUID transactionId = UUID.fromString("17e18d66-4974-49cb-a3d2-f33ee33ebdd1");
+        UUID courseId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         Payment existingPayment = Payment.builder()
-                .idTransaksi(transactionId)
-                .courseId(42L)
-                .userId("user123")
-                .paymentMethod("BankTransfer") 
-                .paymentStatus("PENDING")
+                .transactionId(transactionId)
+                .course(courseId)
+                .user(userId)
+                .paymentMethod(PaymentMethod.BANK_TRANSFER)
+                .paymentStatus(PaymentStatus.PENDING)
                 .coursePrice(new BigDecimal("50000"))
                 .build();
         

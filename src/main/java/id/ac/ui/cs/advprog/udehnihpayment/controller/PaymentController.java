@@ -1,8 +1,11 @@
 package id.ac.ui.cs.advprog.udehnihpayment.controller;
 
 import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentMethod;
+import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentStatus;
 import id.ac.ui.cs.advprog.udehnihpayment.model.Payment;
+import id.ac.ui.cs.advprog.udehnihpayment.model.Refund;
 import id.ac.ui.cs.advprog.udehnihpayment.service.PaymentService;
+import id.ac.ui.cs.advprog.udehnihpayment.service.RefundService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,43 +16,43 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/payments")
 public class PaymentController {
 
     private final PaymentService paymentService;
+    private final RefundService refundService;
 
-    public PaymentController(PaymentService paymentService) {
+    public PaymentController(PaymentService paymentService, RefundService refundService) {
         this.paymentService = paymentService;
+        this.refundService = refundService;
     }
 
-    // POST /api/payments
     @PostMapping
     public ResponseEntity<Payment> createPayment(@RequestBody CreatePaymentRequest request,
-                                                 @RequestHeader("X-User-Id") String userId) {
+                                                 @RequestHeader("X-User-Id") UUID userId) {
         Payment payment = Payment.builder()
-                .courseId(Long.parseLong(request.getCourseId()))
-                .userId(userId)
-                .coursePrice(new BigDecimal("50000")) // hardcoded sementara, bisa di-fetch dari Course
-                .paymentMethod("BankTransfer")   // nanti bisa pakai Strategy
-                .paymentStatus("PENDING")
+                .course(UUID.fromString("a8e376a9-3754-47f9-9dd1-3191a67828d7"))
+                .user(userId)
+                .coursePrice(new BigDecimal("50000"))
+                .paymentMethod(PaymentMethod.BANK_TRANSFER)
+                .paymentStatus(PaymentStatus.PENDING)
                 .build();
 
         Payment result = paymentService.createPayment(payment);
         return ResponseEntity.status(201).body(result);
     }
 
-    // GET /api/payments/history
     @GetMapping("/history")
     public ResponseEntity<List<Payment>> getTransactionHistory(@RequestHeader("X-User-Id") String userId) {
         List<Payment> payments = paymentService.getPaymentsByUser(userId);
         return ResponseEntity.ok(payments);
     }
 
-    // GET /api/payments/methods
     @GetMapping("/methods")
-    public ResponseEntity<?> getPaymentMethods() {
+    public ResponseEntity<List<String>> getPaymentMethods() {
         try {
             List<String> methods = paymentService.getPaymentMethods();
             return ResponseEntity.ok(methods);
@@ -59,12 +62,12 @@ public class PaymentController {
     }
 
     @PostMapping("/{transactionId}/bank-transfer")
-    public ResponseEntity<?> processBankTransferPayment(@PathVariable Long transactionId) {
+    public ResponseEntity<?> processBankTransferPayment(@PathVariable UUID transactionId) {
         try {
             Payment processedPayment = paymentService.processPayment(
-                    transactionId, 
+                    transactionId,
                     PaymentMethod.BANK_TRANSFER.getValue());
-            return ResponseEntity.ok(processedPayment);
+            return ResponseEntity.ok(processedPayment);  // Return the processed payment
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(e.getMessage());
@@ -78,18 +81,51 @@ public class PaymentController {
     }
 
     @PostMapping("/{transactionId}/credit-card")
-    public ResponseEntity<?> processCreditCardPayment(@PathVariable Long transactionId) {
+    public ResponseEntity<?> processCreditCardPayment(@PathVariable UUID transactionId) {
         try {
             Payment processedPayment = paymentService.processPayment(
-                    transactionId, 
+                    transactionId,
                     PaymentMethod.CREDIT_CARD.getValue());
-            return ResponseEntity.ok(processedPayment);
+            return ResponseEntity.ok(processedPayment);  // Return the processed payment
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(e.getMessage());
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error processing payment: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/{transactionId}/refund")
+    public ResponseEntity<?> requestRefund(@PathVariable UUID transactionId,
+                                           @RequestParam String reason,
+                                           @RequestParam(required = false) String details) {
+        try {
+            Payment payment = paymentService.findByIdTransaksi(transactionId);
+            if (payment == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Payment not found for transactionId: " + transactionId);
+            }
+
+            Refund refund = refundService.requestRefund(transactionId, reason, details);
+            return ResponseEntity.ok(refund);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error processing refund: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{transactionId}")
+    public ResponseEntity<?> getTransactionDetails(@PathVariable UUID transactionId) {
+        try {
+            Payment payment = paymentService.findByIdTransaksi(transactionId);
+            if (payment == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+            return ResponseEntity.ok(payment);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error processing payment: " + e.getMessage());

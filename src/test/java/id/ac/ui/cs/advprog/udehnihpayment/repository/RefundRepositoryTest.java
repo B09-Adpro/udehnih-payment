@@ -36,7 +36,7 @@ public class RefundRepositoryTest {
                 .paymentMethod(PaymentMethod.BANK_TRANSFER)
                 .paymentStatus(PaymentStatus.PAID)
                 .coursePrice(new BigDecimal("50000"))
-                .user(UUID.fromString("a2e08dac-c13b-4a2f-9605-5e6840f91ef7"))
+                .userId(UUID.fromString("a2e08dac-c13b-4a2f-9605-5e6840f91ef7"))
                 .build();
 
         paymentRepository.save(payment);
@@ -71,7 +71,7 @@ public class RefundRepositoryTest {
                 .build();
         Refund savedRefund = refundRepository.save(refund);
 
-        Refund foundRefund = refundRepository.findByPayment_IdTransaksi(payment.getTransactionId());
+        Refund foundRefund = refundRepository.findByPayment_TransactionId(payment.getTransactionId());
 
         assertNotNull(foundRefund);
         assertEquals(savedRefund.getId(), foundRefund.getId());

@@ -45,7 +45,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public List<Payment> getPaymentsByUser(String userId) {
+    public List<Payment> getPaymentsByUser(UUID userId) {
         return paymentRepository.findAllByUserId(userId);
     }
 
@@ -58,25 +58,19 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public Payment processPayment(UUID transactionId, String paymentMethod) {
-        Payment payment = paymentRepository.findByIdTransaksi(transactionId);
+        Payment payment = paymentRepository.findByTransactionId(transactionId);
+        PaymentMethod method = PaymentMethod.fromString(paymentMethod);
         if (payment == null) {
             throw new IllegalArgumentException("Payment with ID " + transactionId + " not found");
         }
-        
-        if (!payment.getPaymentMethod().equals(paymentMethod)) {
-            throw new IllegalArgumentException("Payment method mismatch. Expected: " + 
+
+        if (!payment.getPaymentMethod().equals(method)) {
+            throw new IllegalArgumentException("Payment method mismatch. Expected: " +
                 payment.getPaymentMethod() + ", Received: " + paymentMethod);
         }
-        
-        // Only validate that status is PENDING, don't change it
-        if (!payment.getPaymentStatus().equals(PaymentStatus.PENDING.getValue())) {
-            throw new IllegalStateException("Payment cannot be processed. Current status: " + 
-                payment.getPaymentStatus());
-        }
-        
-        PaymentMethod method = PaymentMethod.fromString(paymentMethod);
+
         PaymentStrategy strategy;
-        
+
         switch (method) {
             case BANK_TRANSFER:
                 strategy = new BankTransferPaymentStrategy();
@@ -87,21 +81,16 @@ public class PaymentServiceImpl implements PaymentService {
             default:
                 throw new IllegalArgumentException("Unsupported payment method: " + method);
         }
-        
+
         String result = processPaymentWithStrategy(payment, strategy);
         System.out.println("Payment processing result: " + result);
-        
+
         return payment;
     }
 
     @Override
-    public Payment findByIdTransaksi(UUID transactionId) {
-        return paymentRepository.findByIdTransaksi(transactionId);
-    }
-
-    @Override
-    public Payment savePayment(Payment payment) {
-        return paymentRepository.save(payment);
+    public Payment findByTransactionId(UUID transactionId) {
+        return paymentRepository.findByTransactionId(transactionId);
     }
 
     private String processPaymentWithStrategy(Payment payment, PaymentStrategy strategy) {

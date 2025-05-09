@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
+// Implementasi HLN pada Controller
 @RestController
 @RequestMapping("/api/payments")
 public class PaymentController {
@@ -86,7 +87,7 @@ public class PaymentController {
             Payment processedPayment = paymentService.processPayment(
                     transactionId,
                     PaymentMethod.CREDIT_CARD.getValue());
-            return ResponseEntity.ok(processedPayment);  // Return the processed payment
+            return ResponseEntity.ok(processedPayment);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(e.getMessage());
@@ -104,7 +105,7 @@ public class PaymentController {
                                            @RequestParam String reason,
                                            @RequestParam(required = false) String details) {
         try {
-            Payment payment = paymentService.findByIdTransaksi(transactionId);
+            Payment payment = paymentService.findByTransactionId(transactionId);
             if (payment == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body("Payment not found for transactionId: " + transactionId);
@@ -121,9 +122,9 @@ public class PaymentController {
     @GetMapping("/{transactionId}")
     public ResponseEntity<?> getTransactionDetails(@PathVariable UUID transactionId) {
         try {
-            Payment payment = paymentService.findByIdTransaksi(transactionId);
+            Payment payment = paymentService.findByTransactionId(transactionId);
             if (payment == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Transaction Not Found");
             }
             return ResponseEntity.ok(payment);
         } catch (Exception e) {

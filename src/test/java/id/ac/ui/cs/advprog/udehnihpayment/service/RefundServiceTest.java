@@ -44,7 +44,7 @@ public class RefundServiceTest {
     private Payment createTestPayment() {
         return Payment.builder()
                 .transactionId(UUID.randomUUID())
-                .user(UUID.randomUUID())
+                .userId(UUID.randomUUID())
                 .course(UUID.randomUUID())
                 .coursePrice(new BigDecimal("50000"))
                 .paymentMethod(PaymentMethod.BANK_TRANSFER)
@@ -54,7 +54,7 @@ public class RefundServiceTest {
 
     @Test
     public void testRequestRefund_Success() {
-        when(paymentRepository.findByIdTransaksi(payment.getTransactionId())).thenReturn(payment);
+        when(paymentRepository.findByTransactionId(payment.getTransactionId())).thenReturn(payment);
         when(refundRepository.save(any(Refund.class))).thenReturn(Refund.builder()
                 .payment(payment)
                 .reason("Not satisfied")
@@ -71,7 +71,7 @@ public class RefundServiceTest {
     @Test
     public void testRequestRefund_TransactionNotFound() {
         UUID fakeId = UUID.randomUUID();
-        when(paymentRepository.findByIdTransaksi(fakeId)).thenReturn(null);
+        when(paymentRepository.findByTransactionId(fakeId)).thenReturn(null);
 
         assertThrows(RuntimeException.class, () -> {
             refundService.requestRefund(fakeId, "reason", "details");
@@ -84,11 +84,11 @@ public class RefundServiceTest {
         UUID userId = UUID.randomUUID();
         Payment payment = Payment.builder()
                 .transactionId(id)
-                .user(userId)
+                .userId(userId)
                 .paymentStatus(PaymentStatus.PENDING)
                 .build();
 
-        when(paymentRepository.findByIdTransaksi(id)).thenReturn(payment);
+        when(paymentRepository.findByTransactionId(id)).thenReturn(payment);
 
         assertThrows(IllegalArgumentException.class, () -> {
             refundService.requestRefund(id, "", "some detail");

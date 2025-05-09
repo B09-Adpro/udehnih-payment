@@ -23,7 +23,7 @@ public class Payment {
 
     private UUID course;
 
-    private UUID user;
+    private UUID userId;
 
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;

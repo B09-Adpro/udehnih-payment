@@ -15,7 +15,7 @@ public class PaymentTest {
         Payment payment = Payment.builder()
                 .transactionId(UUID.fromString("17e18d66-4974-49cb-a3d2-f33ee33ebdd1"))
                 .course(UUID.fromString("a8e376a9-3754-47f9-9dd1-3191a67828d7"))
-                .user(UUID.fromString("a2e08dac-c13b-4a2f-9605-5e6840f91ef7"))
+                .userId(UUID.fromString("a2e08dac-c13b-4a2f-9605-5e6840f91ef7"))
                 .paymentMethod(PaymentMethod.BANK_TRANSFER)
                 .paymentStatus(PaymentStatus.PENDING)
                 .coursePrice(new BigDecimal("50000"))
@@ -23,7 +23,7 @@ public class PaymentTest {
 
         assertEquals("17e18d66-4974-49cb-a3d2-f33ee33ebdd1", payment.getTransactionId().toString());
         assertEquals("a8e376a9-3754-47f9-9dd1-3191a67828d7", payment.getCourse().toString());
-        assertEquals("a2e08dac-c13b-4a2f-9605-5e6840f91ef7", payment.getUser().toString());
+        assertEquals("a2e08dac-c13b-4a2f-9605-5e6840f91ef7", payment.getUserId().toString());
         assertEquals("BankTransfer", payment.getPaymentMethod().toString());
         assertEquals("PENDING", payment.getPaymentStatus().toString());
         assertEquals(new BigDecimal("50000"), payment.getCoursePrice());
@@ -34,14 +34,14 @@ public class PaymentTest {
         Payment payment = new Payment();
         payment.setTransactionId(UUID.fromString("98ffe7e1-481e-4100-9321-5aa57dec5e06"));
         payment.setCourse(UUID.fromString("79e1e12f-1188-4833-bcff-70979899d0a3"));
-        payment.setUser(UUID.fromString("f0749b83-c13a-48b8-9af3-ea841441e22d"));
+        payment.setUserId(UUID.fromString("f0749b83-c13a-48b8-9af3-ea841441e22d"));
         payment.setPaymentMethod(PaymentMethod.CREDIT_CARD);
         payment.setPaymentStatus(PaymentStatus.PENDING);
         payment.setCoursePrice(new BigDecimal("75000"));
 
         assertEquals("98ffe7e1-481e-4100-9321-5aa57dec5e06", payment.getTransactionId().toString());
         assertEquals("79e1e12f-1188-4833-bcff-70979899d0a3", payment.getCourse().toString());
-        assertEquals("f0749b83-c13a-48b8-9af3-ea841441e22d", payment.getUser().toString());
+        assertEquals("f0749b83-c13a-48b8-9af3-ea841441e22d", payment.getUserId().toString());
         assertEquals("CreditCard", payment.getPaymentMethod().toString());
         assertEquals("PENDING", payment.getPaymentStatus().toString());
         assertEquals(new BigDecimal("75000"), payment.getCoursePrice());

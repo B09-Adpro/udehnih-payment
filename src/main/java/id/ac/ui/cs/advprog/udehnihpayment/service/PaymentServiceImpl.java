@@ -102,8 +102,8 @@ public class PaymentServiceImpl implements PaymentService {
         String generateInstructions(Payment payment);
 
         default String processPayment(Payment payment) {
-            return "Payment for course ID " + payment.getCourse() +
-                   " with amount " + payment.getCoursePrice() + 
+            return "Payment for course ID " + payment.getCourseId() +
+                   " with amount " + payment.getAmount() + 
                    " processed successfully.";
         }
     }
@@ -111,14 +111,14 @@ public class PaymentServiceImpl implements PaymentService {
     private class BankTransferPaymentStrategy implements PaymentStrategy {
         @Override
         public String generateInstructions(Payment payment) {
-            return "Silakan transfer ke rekening BCA 123-456-7890 a.n Udehnih dengan nominal Rp" + payment.getCoursePrice();
+            return "Silakan transfer ke rekening BCA 123-456-7890 a.n Udehnih dengan nominal Rp" + payment.getAmount();
         }
     }
 
     private class CreditCardPaymentStrategy implements PaymentStrategy {
         @Override
         public String generateInstructions(Payment payment) {
-            return "Silakan masukkan detail kartu kredit Anda di halaman pembayaran. Total tagihan: Rp" + payment.getCoursePrice();
+            return "Silakan masukkan detail kartu kredit Anda di halaman pembayaran. Total tagihan: Rp" + payment.getAmount();
         }
     }
 }

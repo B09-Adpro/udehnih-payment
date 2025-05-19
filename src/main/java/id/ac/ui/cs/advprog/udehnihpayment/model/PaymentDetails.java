@@ -1,19 +1,16 @@
 package id.ac.ui.cs.advprog.udehnihpayment.model;
 
-import jakarta.persistence.Embeddable;
+import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Embeddable
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor @AllArgsConstructor
 public class PaymentDetails {
-
-    private boolean confirmed;
-
+    private boolean confirmation;
     private LocalDateTime confirmedAt;
-
-    private String confirmationBy;
+    private boolean adminApproval;
+    private LocalDateTime approvedAt;
+    private String approvedBy;
 }

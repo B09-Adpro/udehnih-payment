@@ -21,8 +21,8 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID transactionId;
 
-    @Column(nullable = false)
-    private UUID course;
+    @Column(name = "course_id", nullable = false)
+    private UUID courseId;
 
     @Column(nullable = false)
     private UUID userId;
@@ -31,28 +31,30 @@ public class Payment {
     @Column(nullable = false)
     private PaymentStatus paymentStatus;
 
-    @Column(nullable = false)
-    private BigDecimal coursePrice;
+    @Column(name = "amount", nullable = false)
+    private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PaymentMethod paymentMethod;
 
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    @Column(nullable = false)
+    private LocalDateTime expiresAt;
 
     @Embedded
     private PaymentDetails paymentDetails;
 
     @PrePersist
     public void prePersist() {
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
-        }
-        if (updatedAt == null) {
-            updatedAt = LocalDateTime.now();
-        }
+        LocalDateTime now = LocalDateTime.now();
+        createdAt = now;
+        updatedAt = now;
     }
 
     @PreUpdate

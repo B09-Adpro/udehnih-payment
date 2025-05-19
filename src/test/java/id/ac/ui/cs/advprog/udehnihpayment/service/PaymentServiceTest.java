@@ -57,11 +57,11 @@ public class PaymentServiceTest {
         UUID userId = UUID.randomUUID();
         Payment existingPayment = Payment.builder()
                 .transactionId(transactionId)
-                .course(courseId)
+                .courseId(courseId)
                 .userId(userId)
                 .paymentMethod(PaymentMethod.BANK_TRANSFER)
                 .paymentStatus(PaymentStatus.PENDING)
-                .coursePrice(new BigDecimal("50000"))
+                .amount(new BigDecimal("50000"))
                 .build();
         
         when(paymentRepository.findByTransactionId(transactionId)).thenReturn(existingPayment);
@@ -82,11 +82,11 @@ public class PaymentServiceTest {
         UUID userId = UUID.randomUUID();
         Payment existingPayment = Payment.builder()
                 .transactionId(transactionId)
-                .course(courseId)
+                .courseId(courseId)
                 .userId(userId)
                 .paymentMethod(PaymentMethod.CREDIT_CARD)
                 .paymentStatus(PaymentStatus.PENDING)
-                .coursePrice(new BigDecimal("50000"))
+                .amount(new BigDecimal("50000"))
                 .build();
         
         when(paymentRepository.findByTransactionId(transactionId)).thenReturn(existingPayment);
@@ -119,11 +119,11 @@ public class PaymentServiceTest {
         UUID userId = UUID.randomUUID();
         Payment existingPayment = Payment.builder()
                 .transactionId(transactionId)
-                .course(courseId)
+                .courseId(courseId)
                 .userId(userId)
                 .paymentMethod(PaymentMethod.BANK_TRANSFER)
                 .paymentStatus(PaymentStatus.PENDING)
-                .coursePrice(new BigDecimal("50000"))
+                .amount(new BigDecimal("50000"))
                 .build();
         
         when(paymentRepository.findByTransactionId(transactionId)).thenReturn(existingPayment);

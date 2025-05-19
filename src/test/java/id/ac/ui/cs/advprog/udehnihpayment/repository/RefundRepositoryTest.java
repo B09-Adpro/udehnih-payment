@@ -5,8 +5,6 @@ import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentStatus;
 import id.ac.ui.cs.advprog.udehnihpayment.model.Payment;
 import id.ac.ui.cs.advprog.udehnihpayment.model.Refund;
 import id.ac.ui.cs.advprog.udehnihpayment.enums.RefundStatus; // Perbaikan import RefundStatus
-import id.ac.ui.cs.advprog.udehnihpayment.repository.PaymentRepository;
-import id.ac.ui.cs.advprog.udehnihpayment.repository.RefundRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,10 +30,10 @@ public class RefundRepositoryTest {
     public void setUp() {
         // Create a Payment object to associate with Refund
         payment = Payment.builder()
-                .course(UUID.fromString("8bb0d883-f09f-43ab-8471-2114066313b6"))
+                .courseId(UUID.fromString("8bb0d883-f09f-43ab-8471-2114066313b6"))
                 .paymentMethod(PaymentMethod.BANK_TRANSFER)
                 .paymentStatus(PaymentStatus.PAID)
-                .coursePrice(new BigDecimal("50000"))
+                .amount(new BigDecimal("50000"))
                 .userId(UUID.fromString("a2e08dac-c13b-4a2f-9605-5e6840f91ef7"))
                 .build();
 
@@ -45,7 +43,7 @@ public class RefundRepositoryTest {
     @Test
     public void testSaveRefund() {
         Refund refund = Refund.builder()
-                .payment(payment)
+                .transactionId(payment.getTransactionId())
                 .reason("Not satisfied")
                 .details("The course was too basic")
                 .refundStatus(RefundStatus.PENDING)  // Use enum RefundStatus from enums package
@@ -64,7 +62,7 @@ public class RefundRepositoryTest {
     public void testFindRefundByTransactionId() {
         // Save refund first
         Refund refund = Refund.builder()
-                .payment(payment)
+                .transactionId(payment.getTransactionId())
                 .reason("Not satisfied")
                 .details("The course was too basic")
                 .refundStatus(RefundStatus.PENDING)
@@ -75,14 +73,14 @@ public class RefundRepositoryTest {
 
         assertNotNull(foundRefund);
         assertEquals(savedRefund.getId(), foundRefund.getId());
-        assertEquals(payment.getTransactionId(), foundRefund.getPayment().getTransactionId());
+        assertEquals(payment.getTransactionId(), foundRefund.getTransactionId());
     }
 
     @Test
     public void testDeleteRefund() {
         // Save refund first
         Refund refund = Refund.builder()
-                .payment(payment)
+                .transactionId(payment.getTransactionId())
                 .reason("Not satisfied")
                 .details("The course was too basic")
                 .refundStatus(RefundStatus.PENDING)

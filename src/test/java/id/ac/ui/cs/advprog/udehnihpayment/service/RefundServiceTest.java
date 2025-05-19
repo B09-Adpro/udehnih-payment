@@ -45,8 +45,8 @@ public class RefundServiceTest {
         return Payment.builder()
                 .transactionId(UUID.randomUUID())
                 .userId(UUID.randomUUID())
-                .course(UUID.randomUUID())
-                .coursePrice(new BigDecimal("50000"))
+                .courseId(UUID.randomUUID())
+                .amount(new BigDecimal("50000"))
                 .paymentMethod(PaymentMethod.BANK_TRANSFER)
                 .paymentStatus(PaymentStatus.PENDING)
                 .build();
@@ -56,7 +56,7 @@ public class RefundServiceTest {
     public void testRequestRefund_Success() {
         when(paymentRepository.findByTransactionId(payment.getTransactionId())).thenReturn(payment);
         when(refundRepository.save(any(Refund.class))).thenReturn(Refund.builder()
-                .payment(payment)
+                .transactionId(payment.getTransactionId())
                 .reason("Not satisfied")
                 .refundStatus(RefundStatus.PENDING)
                 .build());

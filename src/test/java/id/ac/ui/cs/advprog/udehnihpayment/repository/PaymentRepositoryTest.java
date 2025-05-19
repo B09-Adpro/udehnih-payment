@@ -27,9 +27,9 @@ public class PaymentRepositoryTest {
         UUID courseId = UUID.randomUUID();
         Payment payment = Payment.builder()
                 .transactionId(UUID.fromString("b6968765-7268-4604-8f32-2b21236ab1d9"))
-                .course(courseId)
+                .courseId(courseId)
                 .userId(UUID.fromString("2d0243bd-1e5a-4bbc-ac60-ae4636666ef5"))
-                .coursePrice(new BigDecimal("50000"))
+                .amount(new BigDecimal("50000"))
                 .paymentMethod(PaymentMethod.BANK_TRANSFER)
                 .paymentStatus(PaymentStatus.PENDING)
                 .build();
@@ -47,8 +47,8 @@ public class PaymentRepositoryTest {
 
     @Test
     public void testFindAllByUserId() {
-        Payment p1 = Payment.builder().course(UUID.fromString("56bd8339-267f-4a52-b144-7a6bab0290ae")).userId(UUID.fromString("70f5cdb2-ea8f-488e-aeed-13768e7dbd7b")).paymentStatus(PaymentStatus.PAID).paymentMethod(PaymentMethod.BANK_TRANSFER).coursePrice(new BigDecimal("10000")).build();
-        Payment p2 = Payment.builder().course(UUID.fromString("948e9c9f-c976-4a12-9479-7008f50aaf7c")).userId(UUID.fromString("70f5cdb2-ea8f-488e-aeed-13768e7dbd7b")).paymentStatus(PaymentStatus.PENDING).paymentMethod(PaymentMethod.CREDIT_CARD).coursePrice(new BigDecimal("20000")).build();
+        Payment p1 = Payment.builder().courseId(UUID.fromString("56bd8339-267f-4a52-b144-7a6bab0290ae")).userId(UUID.fromString("70f5cdb2-ea8f-488e-aeed-13768e7dbd7b")).paymentStatus(PaymentStatus.PAID).paymentMethod(PaymentMethod.BANK_TRANSFER).amount(new BigDecimal("10000")).build();
+        Payment p2 = Payment.builder().courseId(UUID.fromString("948e9c9f-c976-4a12-9479-7008f50aaf7c")).userId(UUID.fromString("70f5cdb2-ea8f-488e-aeed-13768e7dbd7b")).paymentStatus(PaymentStatus.PENDING).paymentMethod(PaymentMethod.CREDIT_CARD).amount(new BigDecimal("20000")).build();
 
         when(paymentRepository.findAllByUserId(UUID.fromString("70f5cdb2-ea8f-488e-aeed-13768e7dbd7b"))).thenReturn(List.of(p1, p2));
 
@@ -73,9 +73,9 @@ public class PaymentRepositoryTest {
         UUID userId = UUID.randomUUID();
         Payment payment = Payment.builder()
                 .transactionId(id)
-                .course(courseId)
+                .courseId(courseId)
                 .userId(userId)
-                .coursePrice(new BigDecimal("50000"))
+                .amount(new BigDecimal("50000"))
                 .paymentMethod(PaymentMethod.BANK_TRANSFER)
                 .paymentStatus(PaymentStatus.PENDING)
                 .build();

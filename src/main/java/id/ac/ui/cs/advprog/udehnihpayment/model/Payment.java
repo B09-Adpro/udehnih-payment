@@ -16,16 +16,15 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 public class Payment {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID transactionId;
 
     @Column(name = "course_id", nullable = false)
-    private UUID courseId;
+    private Long courseId;
 
     @Column(nullable = false)
-    private UUID userId;
+    private Long userId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

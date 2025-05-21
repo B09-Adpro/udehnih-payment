@@ -14,13 +14,13 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class Refund {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "transaction_id", nullable = false)
-    private UUID transactionId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "transaction_id", nullable = false)
+    private Payment payment;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

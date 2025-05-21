@@ -16,4 +16,5 @@ public class RefundResponseDTO {
     private String status;
     private String message;
     private String note;
+    private String errorMessage;
 }

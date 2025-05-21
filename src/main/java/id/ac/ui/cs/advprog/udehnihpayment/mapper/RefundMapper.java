@@ -23,7 +23,7 @@ public class RefundMapper {
         }
         
         return Refund.builder()
-                .transactionId(payment.getTransactionId())
+                .payment(payment)
                 .reason(dto.getReason())
                 .details(dto.getDetails())
                 .refundStatus(RefundStatus.PENDING)
@@ -40,7 +40,7 @@ public class RefundMapper {
         }
         
         return Refund.builder()
-                .transactionId(payment.getTransactionId())
+                .payment(payment)
                 .reason(reason)
                 .details(details != null ? details : "")
                 .refundStatus(RefundStatus.PENDING)

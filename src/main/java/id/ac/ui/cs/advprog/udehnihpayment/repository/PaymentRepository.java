@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface PaymentRepository extends JpaRepository<Payment, UUID> {
+public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
-    List<Payment> findAllByUserId(UUID userId);
+    List<Payment> findAllByUserId(Long userId);
     List<Payment> findAllByPaymentStatus(String paymentStatus);
     List<Payment> findAllByPaymentMethod(String paymentMethod);
     Payment findByTransactionId(UUID transactionId);

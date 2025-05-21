@@ -6,7 +6,8 @@ import java.time.LocalDateTime;
 
 @Embeddable
 @Data
-@NoArgsConstructor @AllArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 public class PaymentDetails {
     private boolean confirmation;
     private LocalDateTime confirmedAt;

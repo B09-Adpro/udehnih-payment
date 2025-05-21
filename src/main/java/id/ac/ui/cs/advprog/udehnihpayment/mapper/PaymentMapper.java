@@ -43,27 +43,6 @@ public class PaymentMapper {
     }
 
     /**
-     * Convert Payment entity to PaymentSummaryDTO
-     */
-    public PaymentSummaryDTO toSummaryDto(Payment payment, String courseTitle, String tutorName) {
-        if (payment == null) {
-            return null;
-        }
-
-        return PaymentSummaryDTO.builder()
-                .transactionId(payment.getTransactionId())
-                .courseId(payment.getCourseId())
-                .courseTitle(courseTitle)
-                .tutorName(tutorName)
-                .amount(payment.getAmount())
-                .paymentStatus(payment.getPaymentStatus().getValue())
-                .paymentMethod(payment.getPaymentMethod().getValue())
-                .createdAt(payment.getCreatedAt())
-                .updatedAt(payment.getUpdatedAt())
-                .build();
-    }
-
-    /**
      * Convert Payment entity to PaymentResponseDTO
      */
     public PaymentResponseDTO toResponseDto(Payment payment) {
@@ -75,7 +54,7 @@ public class PaymentMapper {
                 .transactionId(payment.getTransactionId())
                 .courseId(payment.getCourseId())
                 .userId(payment.getUserId())
-                .coursePrice(payment.getAmount())
+                .amount(payment.getAmount())
                 .paymentStatus(payment.getPaymentStatus().getValue())
                 .paymentMethod(payment.getPaymentMethod().getValue())
                 .createdAt(payment.getCreatedAt())
@@ -104,7 +83,7 @@ public class PaymentMapper {
     /**
      * Convert CreatePaymentRequestDTO to Payment entity
      */
-    public Payment toEntity(PaymentRequestDTO dto, UUID userId, String paymentMethod) {
+    public Payment toEntity(PaymentRequestDTO dto, Long userId, String paymentMethod) {
         if (dto == null) {
             return null;
         }
@@ -117,17 +96,6 @@ public class PaymentMapper {
                 .expiresAt(LocalDateTime.now().plusDays(1))
                 .build();
     }
-    
-    /**
-     * Convert list of Payment entities to list of PaymentSummaryDTOs
-     */
-    public List<PaymentSummaryDTO> toSummaryDtoList(List<Payment> payments) {
-        return payments.stream()
-                .map(payment -> toSummaryDto(payment, null, null))
-                .collect(Collectors.toList());
-    }
-
-    // ------- PaymentDetails conversion methods -------
 
     /**
      * Convert PaymentDetails entity to PaymentDetailDTO.Details

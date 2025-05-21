@@ -11,8 +11,8 @@ import java.util.UUID;
 @Builder
 public class PaymentDetailDTO {
     private UUID transactionId;
-    private UUID courseId;
-    private UUID userId;
+    private Long courseId;
+    private Long userId;
     private BigDecimal amount;
     private String paymentStatus;
     private String paymentMethod;
@@ -21,6 +21,8 @@ public class PaymentDetailDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    private String errorMessage;
+    private int statusCode;
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

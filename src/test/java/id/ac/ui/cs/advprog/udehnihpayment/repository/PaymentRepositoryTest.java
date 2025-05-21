@@ -24,7 +24,7 @@ public class PaymentRepositoryTest {
 
     @Test
     public void testSaveAndFindByIdTransaksi() {
-        UUID courseId = UUID.randomUUID();
+        Long courseId = UUID.randomUUID();
         Payment payment = Payment.builder()
                 .transactionId(UUID.fromString("b6968765-7268-4604-8f32-2b21236ab1d9"))
                 .courseId(courseId)

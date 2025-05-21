@@ -45,7 +45,7 @@ public class PaymentController {
     @PostMapping
     public ResponseEntity<PaymentResponseDTO> createPayment(
             @RequestBody PaymentRequestDTO request,
-            @RequestHeader("X-User-Id") UUID userId) {
+            @RequestHeader("X-User-Id") Long userId) {
         
         Payment payment = paymentMapper.toEntity(request, userId, PaymentMethod.BANK_TRANSFER.getValue());
         payment.setAmount(new BigDecimal("50000"));
@@ -57,7 +57,7 @@ public class PaymentController {
     }
 
     @GetMapping("/history")
-    public ResponseEntity<List<PaymentResponseDTO>> getTransactionHistory(@RequestHeader("X-User-Id") UUID userId) {
+    public ResponseEntity<List<PaymentResponseDTO>> getTransactionHistory(@RequestHeader("X-User-Id") Long userId) {
         List<Payment> payments = paymentService.getPaymentsByUser(userId);
         List<PaymentResponseDTO> dtos = payments.stream().map(paymentMapper::toResponseDto).collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
@@ -107,33 +107,46 @@ public class PaymentController {
 
     @PostMapping("/{transactionId}/refund")
     public ResponseEntity<RefundResponseDTO> requestRefund(@PathVariable("transactionId") UUID transactionId,
-                                        @RequestParam("reason") String reason,
-                                        @RequestParam(value= "details", required = false) String details) {
+                                                           @RequestParam("reason") String reason,
+                                                           @RequestParam(value = "details", required = false) String details) {
         try {
             Payment payment = paymentService.findByTransactionId(transactionId);
             if (payment == null) {
-                throw new IllegalArgumentException("Payment not found for transactionId: " + transactionId);
+                // Kembalikan DTO berisi pesan error dengan status NOT_FOUND
+                RefundResponseDTO errorResponse = RefundResponseDTO.builder()
+                        .status("ERROR")
+                        .message("Payment not found for transactionId: " + transactionId)
+                        .errorMessage("Payment not found for transactionId: " + transactionId)
+                        .build();
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
 
             Refund refund = refundService.requestRefund(transactionId, reason, details);
-            
-            // Gunakan RefundMapper untuk konversi ke DTO
             return ResponseEntity.ok(refundMapper.toResponseDto(refund));
+
         } catch (Exception e) {
-            throw new RuntimeException("Error processing refund: " + e.getMessage());
+            // Tangani exception lain dengan mengembalikan DTO error dan status INTERNAL_SERVER_ERROR
+            RefundResponseDTO errorResponse = RefundResponseDTO.builder()
+                    .status("ERROR")
+                    .message("Error processing refund: " + e.getMessage())
+                    .errorMessage(e.getMessage())
+                    .build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 
     @GetMapping("/{transactionId}")
     public ResponseEntity<PaymentDetailDTO> getTransactionDetails(@PathVariable("transactionId") UUID transactionId) {
-        try {
-            Payment payment = paymentService.findByTransactionId(transactionId);
-            if (payment == null) {
-                throw new IllegalArgumentException("Transaction Not Found");
-            }
-            return ResponseEntity.ok(paymentMapper.toDetailDto(payment));
-        } catch (Exception e) {
-            throw new RuntimeException("Error processing payment: " + e.getMessage());
+        Payment payment = paymentService.findByTransactionId(transactionId);
+
+        if (payment == null) {
+            PaymentDetailDTO errorDTO = new PaymentDetailDTO();
+            errorDTO.setErrorMessage("Transaction Not Found");
+            errorDTO.setStatusCode(HttpStatus.NOT_FOUND.value());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorDTO);
         }
+
+        PaymentDetailDTO paymentDetailDTO = paymentMapper.toDetailDto(payment);
+        return ResponseEntity.ok(paymentDetailDTO);
     }
 }

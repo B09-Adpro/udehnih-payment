@@ -33,7 +33,7 @@ public class RefundServiceImpl implements RefundService {
         }
 
         Refund refund = Refund.builder()
-                .transactionId(payment.getTransactionId())
+                .payment(payment)
                 .reason(reason)
                 .details(details != null ? details : "")
                 .refundStatus(RefundStatus.PENDING)

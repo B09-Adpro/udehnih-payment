@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -28,13 +29,13 @@ public class RefundRepositoryTest {
 
     @BeforeEach
     public void setUp() {
-        // Create a Payment object to associate with Refund
         payment = Payment.builder()
                 .courseId(UUID.fromString("8bb0d883-f09f-43ab-8471-2114066313b6"))
                 .paymentMethod(PaymentMethod.BANK_TRANSFER)
                 .paymentStatus(PaymentStatus.PAID)
                 .amount(new BigDecimal("50000"))
                 .userId(UUID.fromString("a2e08dac-c13b-4a2f-9605-5e6840f91ef7"))
+                .expiresAt(LocalDateTime.now().plusDays(1))
                 .build();
 
         paymentRepository.save(payment);
@@ -69,7 +70,7 @@ public class RefundRepositoryTest {
                 .build();
         Refund savedRefund = refundRepository.save(refund);
 
-        Refund foundRefund = refundRepository.findByPayment_TransactionId(payment.getTransactionId());
+        Refund foundRefund = refundRepository.findByTransactionId(payment.getTransactionId());
 
         assertNotNull(foundRefund);
         assertEquals(savedRefund.getId(), foundRefund.getId());

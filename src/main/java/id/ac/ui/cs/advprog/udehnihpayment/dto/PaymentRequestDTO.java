@@ -13,8 +13,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class PaymentRequestDTO {
-    private UUID courseId;
-    private UUID userId;
+    private Long courseId;
+    private Long userId;
     private BigDecimal coursePrice;
     private String paymentMethod;
 }

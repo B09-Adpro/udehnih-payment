@@ -16,11 +16,13 @@ import java.util.UUID;
 @Builder
 public class PaymentResponseDTO {
     private UUID transactionId;
-    private UUID courseId;
-    private UUID userId;
-    private BigDecimal coursePrice;
-    private String paymentMethod;
+    private Long courseId;
+    private Long userId;
+    private String courseTitle;
+    private String tutorName;
+    private BigDecimal amount;
     private String paymentStatus;
+    private String paymentMethod;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private PaymentDetailDTO paymentDetails;

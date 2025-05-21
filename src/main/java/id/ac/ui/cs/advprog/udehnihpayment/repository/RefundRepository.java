@@ -9,5 +9,5 @@ import java.util.UUID;
 @Repository
 public interface RefundRepository extends JpaRepository<Refund, UUID> {
 
-    Refund findByPayment_TransactionId(UUID transactionId);
+    Refund findByTransactionId(UUID transactionId);
 }

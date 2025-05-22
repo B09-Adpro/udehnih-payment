@@ -19,10 +19,7 @@ public class PaymentMapper {
             return null;
         }
 
-        PaymentDetailDTO.Details detailsDto = null;
-        if (payment.getPaymentDetails() != null) {
-            detailsDto = this.toDetailsDto(payment.getPaymentDetails());
-        }
+        PaymentDetailDTO.Details detailsDto = payment.getPaymentDetails() == null ? null : toDetailsDto(payment.getPaymentDetails());
 
         return PaymentDetailDTO.builder()
                 .transactionId(payment.getTransactionId())
@@ -68,7 +65,7 @@ public class PaymentMapper {
 
         return Payment.builder()
                 .courseId(dto.getCourseId())
-                .userId(dto.getUserId())
+                .userId(userId)
                 .amount(dto.getCoursePrice())
                 .paymentMethod(PaymentMethod.fromString(dto.getPaymentMethod()))
                 .build();

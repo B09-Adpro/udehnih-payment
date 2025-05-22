@@ -52,7 +52,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public List<Payment> getAllPayments(Long userId) {
-        return paymentRepository.findAll();
+        return paymentRepository.findAllByUserId(userId);
     }
 
     @Override

@@ -28,7 +28,6 @@ public class RefundServiceTest {
     @Mock
     private RefundRepository refundRepository;
 
-    // Gunakan implementasi RefundServiceImpl di sini
     @InjectMocks
     private RefundServiceImpl refundService;
 
@@ -40,12 +39,11 @@ public class RefundServiceTest {
         payment = createTestPayment();
     }
 
-    // Helper method untuk membuat Payment object
     private Payment createTestPayment() {
         return Payment.builder()
                 .transactionId(UUID.randomUUID())
-                .userId(UUID.randomUUID())
-                .courseId(UUID.randomUUID())
+                .userId(456L)
+                .courseId(123L)
                 .amount(new BigDecimal("50000"))
                 .paymentMethod(PaymentMethod.BANK_TRANSFER)
                 .paymentStatus(PaymentStatus.PENDING)
@@ -56,7 +54,7 @@ public class RefundServiceTest {
     public void testRequestRefund_Success() {
         when(paymentRepository.findByTransactionId(payment.getTransactionId())).thenReturn(payment);
         when(refundRepository.save(any(Refund.class))).thenReturn(Refund.builder()
-                .transactionId(payment.getTransactionId())
+                .payment(payment)
                 .reason("Not satisfied")
                 .refundStatus(RefundStatus.PENDING)
                 .build());
@@ -81,7 +79,7 @@ public class RefundServiceTest {
     @Test
     public void testRequestRefund_EmptyReason() {
         UUID id = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
+        Long userId = 456L;
         Payment payment = Payment.builder()
                 .transactionId(id)
                 .userId(userId)

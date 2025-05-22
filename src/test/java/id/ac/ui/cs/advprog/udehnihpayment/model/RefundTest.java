@@ -16,8 +16,8 @@ public class RefundTest {
     public void testRefundBuilder_ShouldBuildCorrectly() {
         Payment payment = Payment.builder()
                 .transactionId(UUID.fromString("17e18d66-4974-49cb-a3d2-f33ee33ebdd1"))
-                .courseId(UUID.fromString("36c35311-73af-47c1-9bfc-1a3d13683723"))
-                .userId(UUID.fromString("8eed0cfb-b550-49e7-a1bd-bee838c08ba7"))
+                .courseId(123L)
+                .userId(456L)
                 .paymentMethod(PaymentMethod.BANK_TRANSFER)
                 .paymentStatus(PaymentStatus.PENDING)
                 .amount(new BigDecimal("50000"))
@@ -25,12 +25,12 @@ public class RefundTest {
         
         Refund refund = Refund.builder()
                 .id(UUID.fromString("f7d65f1d-4521-4c3f-9106-3cc11976f954"))
-                .transactionId(payment.getTransactionId())
+                .payment(payment)
                 .refundStatus(RefundStatus.PENDING)
                 .build();
 
         assertEquals("f7d65f1d-4521-4c3f-9106-3cc11976f954", refund.getId().toString());
-        assertEquals(payment.getTransactionId(), refund.getTransactionId());
+        assertEquals(payment.getTransactionId(), refund.getPayment().getTransactionId());
         assertEquals("PENDING", refund.getRefundStatus().toString());
     }
 
@@ -41,11 +41,11 @@ public class RefundTest {
         
         Refund refund = new Refund();
         refund.setId(UUID.fromString("7f77b8cc-47a9-40a3-bc8a-fef1ec7182e9"));
-        refund.setTransactionId(payment.getTransactionId());
+        refund.setPayment(payment);
         refund.setRefundStatus(RefundStatus.PENDING);
 
         assertEquals("7f77b8cc-47a9-40a3-bc8a-fef1ec7182e9", refund.getId().toString());
-        assertEquals(payment.getTransactionId(), refund.getTransactionId());
+        assertEquals(payment.getTransactionId(), refund.getPayment().getTransactionId());
         assertEquals("PENDING", refund.getRefundStatus().toString());
     }
 }

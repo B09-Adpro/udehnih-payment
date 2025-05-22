@@ -24,11 +24,10 @@ public class PaymentRepositoryTest {
 
     @Test
     public void testSaveAndFindByIdTransaksi() {
-        Long courseId = UUID.randomUUID();
         Payment payment = Payment.builder()
                 .transactionId(UUID.fromString("b6968765-7268-4604-8f32-2b21236ab1d9"))
-                .courseId(courseId)
-                .userId(UUID.fromString("2d0243bd-1e5a-4bbc-ac60-ae4636666ef5"))
+                .courseId(123L)
+                .userId(456L)
                 .amount(new BigDecimal("50000"))
                 .paymentMethod(PaymentMethod.BANK_TRANSFER)
                 .paymentStatus(PaymentStatus.PENDING)
@@ -42,20 +41,20 @@ public class PaymentRepositoryTest {
 
         assertNotNull(found);
         assertEquals(saved.getTransactionId(), found.getTransactionId());
-        assertEquals("2d0243bd-1e5a-4bbc-ac60-ae4636666ef5", found.getUserId().toString());
+        assertEquals(456L, found.getUserId());
     }
 
     @Test
     public void testFindAllByUserId() {
-        Payment p1 = Payment.builder().courseId(UUID.fromString("56bd8339-267f-4a52-b144-7a6bab0290ae")).userId(UUID.fromString("70f5cdb2-ea8f-488e-aeed-13768e7dbd7b")).paymentStatus(PaymentStatus.PAID).paymentMethod(PaymentMethod.BANK_TRANSFER).amount(new BigDecimal("10000")).build();
-        Payment p2 = Payment.builder().courseId(UUID.fromString("948e9c9f-c976-4a12-9479-7008f50aaf7c")).userId(UUID.fromString("70f5cdb2-ea8f-488e-aeed-13768e7dbd7b")).paymentStatus(PaymentStatus.PENDING).paymentMethod(PaymentMethod.CREDIT_CARD).amount(new BigDecimal("20000")).build();
+        Payment p1 = Payment.builder().courseId(123L).userId(456L).paymentStatus(PaymentStatus.PAID).paymentMethod(PaymentMethod.BANK_TRANSFER).amount(new BigDecimal("10000")).build();
+        Payment p2 = Payment.builder().courseId(123L).userId(456L).paymentStatus(PaymentStatus.PENDING).paymentMethod(PaymentMethod.CREDIT_CARD).amount(new BigDecimal("20000")).build();
 
-        when(paymentRepository.findAllByUserId(UUID.fromString("70f5cdb2-ea8f-488e-aeed-13768e7dbd7b"))).thenReturn(List.of(p1, p2));
+        when(paymentRepository.findAllByUserId(456L)).thenReturn(List.of(p1, p2));
 
-        List<Payment> result = paymentRepository.findAllByUserId(UUID.fromString("70f5cdb2-ea8f-488e-aeed-13768e7dbd7b"));
+        List<Payment> result = paymentRepository.findAllByUserId(456L);
 
         assertEquals(2, result.size());
-        assertTrue(result.stream().allMatch(p -> p.getUserId().equals(UUID.fromString("70f5cdb2-ea8f-488e-aeed-13768e7dbd7b"))));
+        assertTrue(result.stream().allMatch(p -> p.getUserId().equals(456L)));
     }
 
     @Test
@@ -69,8 +68,8 @@ public class PaymentRepositoryTest {
     @Test
     public void testFindAndUpdatePayment() {
         UUID id = UUID.randomUUID();
-        UUID courseId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
+        Long courseId = 123L;
+        Long userId = 456L;
         Payment payment = Payment.builder()
                 .transactionId(id)
                 .courseId(courseId)

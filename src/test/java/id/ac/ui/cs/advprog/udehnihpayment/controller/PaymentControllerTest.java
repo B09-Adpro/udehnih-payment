@@ -48,8 +48,8 @@ public class PaymentControllerTest {
     private PaymentController paymentController;
 
     private UUID transactionId;
-    private UUID courseId;
-    private UUID userId;
+    private Long courseId;
+    private Long userId;
     private Payment payment;
 
     @BeforeEach
@@ -58,8 +58,8 @@ public class PaymentControllerTest {
                 .build();
 
         transactionId = UUID.fromString("977205b3-9325-48f0-a29c-d8da4976507e");
-        courseId = UUID.fromString("ffd385a8-0ca0-4f2e-9aef-d69a193df567");
-        userId = UUID.fromString("55a50758-cdb7-4847-8036-5b9d4bf62463");
+        courseId = 123L;
+        userId = 456L;
         payment = Payment.builder()
                 .transactionId(transactionId)
                 .courseId(courseId)
@@ -127,8 +127,8 @@ public class PaymentControllerTest {
     @Test
     public void processBankTransferPayment_HappyPath_ReturnsSuccess() throws Exception {
         UUID transactionId = UUID.randomUUID();
-        UUID courseId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
+        Long courseId = 123L;
+        Long userId = 456L;
         Payment updatedPayment = Payment.builder()
                 .transactionId(transactionId)
                 .courseId(courseId)
@@ -163,8 +163,8 @@ public class PaymentControllerTest {
     public void processCreditCardPayment_HappyPath_ReturnsSuccess() throws Exception {
         // Gunakan UUID yang sudah ditentukan agar konsisten
         transactionId = UUID.fromString("977205b3-9325-48f0-a29c-d8da4976507e");
-        courseId = UUID.fromString("ffd385a8-0ca0-4f2e-9aef-d69a193df567");
-        userId = UUID.fromString("55a50758-cdb7-4847-8036-5b9d4bf62463");
+        courseId = 123L;
+        userId = 456L;
 
         // Buat objek Payment hasil proses yang ingin dikembalikan service
         Payment updatedPayment = Payment.builder()
@@ -246,7 +246,7 @@ public class PaymentControllerTest {
         // Create a sample refund
         Refund refund = Refund.builder()
                 .id(UUID.randomUUID())
-                .transactionId(transactionId)
+                .payment(payment)
                 .reason("Course not as expected")
                 .details("Content too basic")
                 .build();

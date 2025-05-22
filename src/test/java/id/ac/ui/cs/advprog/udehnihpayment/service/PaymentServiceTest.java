@@ -53,8 +53,8 @@ public class PaymentServiceTest {
     public void processPayment_BankTransfer_HappyPath() {
         // Arrange
         UUID transactionId = UUID.randomUUID();
-        UUID courseId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
+        Long courseId = 123L;
+        Long userId = 456L;
         Payment existingPayment = Payment.builder()
                 .transactionId(transactionId)
                 .courseId(courseId)
@@ -78,8 +78,8 @@ public class PaymentServiceTest {
     public void processPayment_CreditCard_HappyPath() {
         // Arrange
         UUID transactionId = UUID.randomUUID();
-        UUID courseId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
+        Long courseId = 123L;
+        Long userId = 456L;
         Payment existingPayment = Payment.builder()
                 .transactionId(transactionId)
                 .courseId(courseId)
@@ -115,8 +115,8 @@ public class PaymentServiceTest {
     public void processPayment_MethodMismatch_ThrowsException() {
         // Arrange
         UUID transactionId = UUID.fromString("17e18d66-4974-49cb-a3d2-f33ee33ebdd1");
-        UUID courseId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
+        Long courseId = 123L;
+        Long userId = 456L;
         Payment existingPayment = Payment.builder()
                 .transactionId(transactionId)
                 .courseId(courseId)

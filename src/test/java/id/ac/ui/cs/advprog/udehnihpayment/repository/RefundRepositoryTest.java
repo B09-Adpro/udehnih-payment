@@ -30,11 +30,11 @@ public class RefundRepositoryTest {
     @BeforeEach
     public void setUp() {
         payment = Payment.builder()
-                .courseId(UUID.fromString("8bb0d883-f09f-43ab-8471-2114066313b6"))
+                .courseId(123L)
                 .paymentMethod(PaymentMethod.BANK_TRANSFER)
                 .paymentStatus(PaymentStatus.PAID)
                 .amount(new BigDecimal("50000"))
-                .userId(UUID.fromString("a2e08dac-c13b-4a2f-9605-5e6840f91ef7"))
+                .userId(456L)
                 .expiresAt(LocalDateTime.now().plusDays(1))
                 .build();
 
@@ -44,10 +44,10 @@ public class RefundRepositoryTest {
     @Test
     public void testSaveRefund() {
         Refund refund = Refund.builder()
-                .transactionId(payment.getTransactionId())
+                .payment(payment)
                 .reason("Not satisfied")
                 .details("The course was too basic")
-                .refundStatus(RefundStatus.PENDING)  // Use enum RefundStatus from enums package
+                .refundStatus(RefundStatus.PENDING)
                 .build();
 
         // Save refund and check if it's persisted in the database
@@ -63,25 +63,25 @@ public class RefundRepositoryTest {
     public void testFindRefundByTransactionId() {
         // Save refund first
         Refund refund = Refund.builder()
-                .transactionId(payment.getTransactionId())
+                .payment(payment)
                 .reason("Not satisfied")
                 .details("The course was too basic")
                 .refundStatus(RefundStatus.PENDING)
                 .build();
         Refund savedRefund = refundRepository.save(refund);
 
-        Refund foundRefund = refundRepository.findByTransactionId(payment.getTransactionId());
+        Refund foundRefund = refundRepository.findByPayment_TransactionId(payment.getTransactionId());
 
         assertNotNull(foundRefund);
         assertEquals(savedRefund.getId(), foundRefund.getId());
-        assertEquals(payment.getTransactionId(), foundRefund.getTransactionId());
+        assertEquals(payment.getTransactionId(), foundRefund.getPayment().getTransactionId());
     }
 
     @Test
     public void testDeleteRefund() {
         // Save refund first
         Refund refund = Refund.builder()
-                .transactionId(payment.getTransactionId())
+                .payment(payment)
                 .reason("Not satisfied")
                 .details("The course was too basic")
                 .refundStatus(RefundStatus.PENDING)

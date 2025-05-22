@@ -57,7 +57,7 @@ public class RefundMapper {
         }
         
         return RefundResponseDTO.builder()
-                .refundId(refund.getId()) // Sesuaikan dengan field di entity
+                .refundId(refund.getId())
                 .status(refund.getRefundStatus().getValue())
                 .message("Refund request has been submitted successfully.")
                 .note("Your refund request is being processed by admin.")

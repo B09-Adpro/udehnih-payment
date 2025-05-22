@@ -57,6 +57,11 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    public List<Payment> getAllPayments() {
+        return paymentRepository.findAll();
+    }
+
+    @Override
     public Payment processPayment(UUID transactionId, String paymentMethod) {
         Payment payment = paymentRepository.findByTransactionId(transactionId);
         PaymentMethod method = PaymentMethod.fromString(paymentMethod);

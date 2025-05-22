@@ -11,6 +11,7 @@ public interface PaymentService {
     List<Payment> getPaymentsByUser(Long userId);
 
     List<String> getPaymentMethods();
+    List<Payment> getAllPayments();
     Payment processPayment(UUID transactionId, String paymentMethod);
     Payment findByTransactionId(UUID transactionId);
 }

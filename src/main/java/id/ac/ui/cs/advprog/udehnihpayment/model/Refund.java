@@ -19,7 +19,7 @@ public class Refund {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "transaction_id", nullable = false)
+    @JoinColumn(name = "transactionId", nullable = false)
     private Payment payment;
 
     @Enumerated(EnumType.STRING)

@@ -1,9 +1,9 @@
 package id.ac.ui.cs.advprog.udehnihpayment.controller;
 
-import id.ac.ui.cs.advprog.udehnihpayment.dto.PaymentResponseDTO;
-import id.ac.ui.cs.advprog.udehnihpayment.dto.PaymentDetailDTO;
-import id.ac.ui.cs.advprog.udehnihpayment.dto.RefundResponseDTO;
-import id.ac.ui.cs.advprog.udehnihpayment.dto.PaymentRequestDTO;
+import id.ac.ui.cs.advprog.udehnihpayment.dto.response.PaymentResponseDTO;
+import id.ac.ui.cs.advprog.udehnihpayment.dto.response.PaymentDetailDTO;
+import id.ac.ui.cs.advprog.udehnihpayment.dto.response.RefundResponseDTO;
+import id.ac.ui.cs.advprog.udehnihpayment.dto.request.PaymentRequestDTO;
 import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentMethod;
 import id.ac.ui.cs.advprog.udehnihpayment.mapper.PaymentMapper;
 import id.ac.ui.cs.advprog.udehnihpayment.mapper.RefundMapper;
@@ -16,7 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -47,7 +46,7 @@ public class PaymentController {
             @RequestBody PaymentRequestDTO request,
             @RequestHeader("X-User-Id") Long userId) {
         
-        Payment payment = paymentMapper.toEntity(request);
+        Payment payment = paymentMapper.toEntity(request, userId);
         Payment result = paymentService.createPayment(payment);
         
         return ResponseEntity.status(HttpStatus.CREATED).body(paymentMapper.toResponseDto(result));

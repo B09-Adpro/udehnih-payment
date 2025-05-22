@@ -1,14 +1,12 @@
 package id.ac.ui.cs.advprog.udehnihpayment.mapper;
 
-import id.ac.ui.cs.advprog.udehnihpayment.dto.*;
+import id.ac.ui.cs.advprog.udehnihpayment.dto.request.PaymentRequestDTO;
+import id.ac.ui.cs.advprog.udehnihpayment.dto.response.PaymentDetailDTO;
+import id.ac.ui.cs.advprog.udehnihpayment.dto.response.PaymentResponseDTO;
 import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentMethod;
-import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentStatus;
 import id.ac.ui.cs.advprog.udehnihpayment.model.Payment;
 import id.ac.ui.cs.advprog.udehnihpayment.model.PaymentDetails;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Component
 public class PaymentMapper {
@@ -63,7 +61,7 @@ public class PaymentMapper {
     /**
      * Convert PaymentRequestDTO to Payment entity
      */
-    public Payment toEntity(PaymentRequestDTO dto) {
+    public Payment toEntity(PaymentRequestDTO dto, Long userId) {
         if (dto == null) {
             return null;
         }
@@ -73,8 +71,6 @@ public class PaymentMapper {
                 .userId(dto.getUserId())
                 .amount(dto.getCoursePrice())
                 .paymentMethod(PaymentMethod.fromString(dto.getPaymentMethod()))
-                .paymentStatus(PaymentStatus.PENDING)
-                .expiresAt(LocalDateTime.now().plusDays(1))
                 .build();
     }
 

@@ -1,5 +1,5 @@
 // src/main/java/id/ac/ui/cs/advprog/udehnihpayment/dto/PaymentResponseDTO.java
-package id.ac.ui.cs.advprog.udehnihpayment.dto;
+package id.ac.ui.cs.advprog.udehnihpayment.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,5 +25,6 @@ public class PaymentResponseDTO {
     private String paymentMethod;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime expiresAt;
     private PaymentDetailDTO paymentDetails;
 }

@@ -1,7 +1,7 @@
 package id.ac.ui.cs.advprog.udehnihpayment.mapper;
 
-import id.ac.ui.cs.advprog.udehnihpayment.dto.RefundRequestDTO;
-import id.ac.ui.cs.advprog.udehnihpayment.dto.RefundResponseDTO;
+import id.ac.ui.cs.advprog.udehnihpayment.dto.request.RefundRequestDTO;
+import id.ac.ui.cs.advprog.udehnihpayment.dto.response.RefundResponseDTO;
 import id.ac.ui.cs.advprog.udehnihpayment.enums.RefundStatus;
 import id.ac.ui.cs.advprog.udehnihpayment.model.Payment;
 import id.ac.ui.cs.advprog.udehnihpayment.model.Refund;

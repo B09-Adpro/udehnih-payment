@@ -7,6 +7,7 @@ import id.ac.ui.cs.advprog.udehnihpayment.repository.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -20,13 +21,18 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public Payment createPayment(Payment payment) {
-        payment.setTransactionId(UUID.randomUUID());
-        payment.setPaymentStatus(PaymentStatus.PENDING);
+        if (payment.getPaymentStatus() == null) {
+            payment.setPaymentStatus(PaymentStatus.PENDING);
+        }
+        if (payment.getExpiresAt() == null) {
+            payment.setExpiresAt(LocalDateTime.now().plusDays(1));
+        }
+
         Payment saved = paymentRepository.save(payment);
 
         PaymentStrategy strategy;
-        PaymentMethod method = PaymentMethod.fromString(saved.getPaymentMethod().toString());
-        
+        PaymentMethod method = saved.getPaymentMethod();
+
         switch (method) {
             case BANK_TRANSFER:
                 strategy = new BankTransferPaymentStrategy();

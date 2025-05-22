@@ -1,6 +1,8 @@
 package id.ac.ui.cs.advprog.udehnihpayment.controller;
 
-import id.ac.ui.cs.advprog.udehnihpayment.dto.*;
+import id.ac.ui.cs.advprog.udehnihpayment.dto.response.PaymentDetailDTO;
+import id.ac.ui.cs.advprog.udehnihpayment.dto.response.PaymentResponseDTO;
+import id.ac.ui.cs.advprog.udehnihpayment.dto.response.RefundResponseDTO;
 import id.ac.ui.cs.advprog.udehnihpayment.enums.*;
 import id.ac.ui.cs.advprog.udehnihpayment.mapper.*;
 import id.ac.ui.cs.advprog.udehnihpayment.model.*;
@@ -338,7 +340,7 @@ public class PaymentControllerTest {
                 .build();
                 
         // Mock behavior of mapper to return a Payment when converting from DTO
-        when(paymentMapper.toEntity(any(), eq(userId), eq(PaymentMethod.BANK_TRANSFER.getValue())))
+        when(paymentMapper.toEntity(any(), eq(userId)))
                 .thenReturn(newPayment);
                 
         // Mock behavior of service to return the payment

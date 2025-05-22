@@ -1,4 +1,4 @@
-package id.ac.ui.cs.advprog.udehnihpayment.dto;
+package id.ac.ui.cs.advprog.udehnihpayment.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

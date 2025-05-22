@@ -49,7 +49,7 @@ public class PaymentControllerTest {
     @InjectMocks
     private PaymentController paymentController;
 
-    private UUID transactionId;
+    private Long transactionId;
     private Long courseId;
     private Long userId;
     private Payment payment;
@@ -59,7 +59,7 @@ public class PaymentControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(paymentController)
                 .build();
 
-        transactionId = UUID.fromString("977205b3-9325-48f0-a29c-d8da4976507e");
+        transactionId = 1001L;
         courseId = 123L;
         userId = 456L;
         payment = Payment.builder()
@@ -95,7 +95,7 @@ public class PaymentControllerTest {
         
         // Set up RefundMapper mock behavior
         RefundResponseDTO refundResponseDTO = RefundResponseDTO.builder()
-                .refundId(UUID.fromString("2d2732b9-31ce-491a-966b-c613aef23289"))
+                .refundId(678L)
                 .status("PENDING")
                 .message("Refund request has been submitted successfully.")
                 .note("Your refund request is being processed by admin.")
@@ -128,7 +128,7 @@ public class PaymentControllerTest {
 
     @Test
     public void processBankTransferPayment_HappyPath_ReturnsSuccess() throws Exception {
-        UUID transactionId = UUID.randomUUID();
+        Long transactionId = 2001L;
         Long courseId = 123L;
         Long userId = 456L;
         Payment updatedPayment = Payment.builder()
@@ -163,12 +163,10 @@ public class PaymentControllerTest {
 
     @Test
     public void processCreditCardPayment_HappyPath_ReturnsSuccess() throws Exception {
-        // Gunakan UUID yang sudah ditentukan agar konsisten
-        transactionId = UUID.fromString("977205b3-9325-48f0-a29c-d8da4976507e");
+        transactionId = 1001L;
         courseId = 123L;
         userId = 456L;
 
-        // Buat objek Payment hasil proses yang ingin dikembalikan service
         Payment updatedPayment = Payment.builder()
                 .transactionId(transactionId)
                 .courseId(courseId)
@@ -178,24 +176,20 @@ public class PaymentControllerTest {
                 .amount(new BigDecimal("50000"))
                 .build();
 
-        // Mock service untuk mengembalikan payment yang sudah diupdate
         when(paymentService.processPayment(eq(transactionId), eq("CreditCard")))
                 .thenReturn(updatedPayment);
 
-        // Mock DTO response yang sesuai dengan updatedPayment
         PaymentResponseDTO responseDTO = PaymentResponseDTO.builder()
                 .transactionId(transactionId)
                 .courseId(courseId)
                 .userId(userId)
-                .amount(new BigDecimal("50000"))  // sesuaikan jika perlu
+                .amount(new BigDecimal("50000"))
                 .paymentStatus("PENDING")
                 .paymentMethod("CreditCard")  // Harus sesuai ekspektasi test
                 .build();
 
-        // Mock mapper untuk mengubah Payment jadi DTO response
         when(paymentMapper.toResponseDto(updatedPayment)).thenReturn(responseDTO);
 
-        // Lakukan request dan verifikasi hasil JSON
         mockMvc.perform(post("/api/payments/{transactionId}/credit-card", transactionId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -205,10 +199,7 @@ public class PaymentControllerTest {
 
     @Test
     public void testGetTransactionDetails_Success() throws Exception {
-        // Mock the service to return the sample payment
         when(paymentService.findByTransactionId(eq(transactionId))).thenReturn(payment);
-        
-        // Create DTO that will be returned by mapper
         PaymentDetailDTO detailDTO = PaymentDetailDTO.builder()
                 .transactionId(transactionId)
                 .courseId(courseId)
@@ -217,14 +208,10 @@ public class PaymentControllerTest {
                 .paymentStatus("PENDING")
                 .paymentMethod("BANK_TRANSFER")
                 .build();
-                
-        // Mock the mapper to return the DTO
         when(paymentMapper.toDetailDto(payment)).thenReturn(detailDTO);
-
-        // Perform the GET request and verify the response
         mockMvc.perform(get("/api/payments/{transactionId}", transactionId)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())  // 200 OK
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.transactionId").value(transactionId.toString()))
                 .andExpect(jsonPath("$.userId").value(userId.toString()))
                 .andExpect(jsonPath("$.paymentStatus").value("PENDING"));
@@ -233,7 +220,6 @@ public class PaymentControllerTest {
     @Test
     public void testGetTransactionDetails_NotFound() throws Exception {
         when(paymentService.findByTransactionId(eq(transactionId))).thenReturn(null);
-
         mockMvc.perform(get("/api/payments/{transactionId}", transactionId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
@@ -244,31 +230,21 @@ public class PaymentControllerTest {
     @Test
     public void testRequestRefund_Success() throws Exception {
         when(paymentService.findByTransactionId(eq(transactionId))).thenReturn(payment);
-        
-        // Create a sample refund
         Refund refund = Refund.builder()
-                .id(UUID.randomUUID())
+                .id(3001L)
                 .payment(payment)
                 .reason("Course not as expected")
                 .details("Content too basic")
                 .build();
-                
-        // Mock refundService to return the refund
         when(refundService.requestRefund(eq(transactionId), eq("Course not as expected"), eq("Content too basic")))
                 .thenReturn(refund);
-                
-        // Create RefundResponseDTO that mapper will return
         RefundResponseDTO refundResponseDTO = RefundResponseDTO.builder()
                 .refundId(refund.getId())
                 .status("PENDING")
                 .message("Refund request has been submitted successfully.")
                 .note("Your refund request is being processed by admin.")
                 .build();
-                
-        // Mock refundMapper to return the DTO
         when(refundMapper.toResponseDto(refund)).thenReturn(refundResponseDTO);
-
-        // Perform the request
         mockMvc.perform(post("/api/payments/{transactionId}/refund", transactionId)
                 .param("reason", "Course not as expected")
                 .param("details", "Content too basic")
@@ -283,7 +259,6 @@ public class PaymentControllerTest {
     @Test
     public void testRequestRefund_PaymentNotFound() throws Exception {
         when(paymentService.findByTransactionId(eq(transactionId))).thenReturn(null);
-
         mockMvc.perform(post("/api/payments/{transactionId}/refund", transactionId)
                         .param("reason", "Course not as expected")
                         .param("details", "Content too basic")
@@ -295,14 +270,9 @@ public class PaymentControllerTest {
 
     @Test
     public void testRequestRefund_ServiceThrowsException() throws Exception {
-        // Mock findByTransactionId to return the sample payment
         when(paymentService.findByTransactionId(eq(transactionId))).thenReturn(payment);
-
-        // Mock refundService to throw exception
         when(refundService.requestRefund(eq(transactionId), eq("Course not as expected"), eq("Content too basic")))
                 .thenThrow(new RuntimeException("Error processing refund"));
-
-        // Perform the request
         mockMvc.perform(post("/api/payments/{transactionId}/refund", transactionId)
                         .param("reason", "Course not as expected")
                         .param("details", "Content too basic")
@@ -315,21 +285,15 @@ public class PaymentControllerTest {
 
     @Test
     public void testCreatePayment_Success() throws Exception {
-        // Sample request data
-        // Create JSON request
         String requestJson = "{\"courseId\":\"" + courseId + "\",\"paymentMethod\":\"BANK_TRANSFER\"}";
-        
-        // Create a sample payment that will be returned by service
         Payment newPayment = Payment.builder()
-                .transactionId(UUID.randomUUID())
+                .transactionId(4001L)
                 .courseId(courseId)
                 .userId(userId)
                 .paymentMethod(PaymentMethod.BANK_TRANSFER)
                 .paymentStatus(PaymentStatus.PENDING)
                 .amount(new BigDecimal("50000"))
                 .build();
-        
-        // Create response DTO that mapper will return
         PaymentResponseDTO responseDTO = PaymentResponseDTO.builder()
                 .transactionId(newPayment.getTransactionId())
                 .courseId(courseId)
@@ -338,25 +302,18 @@ public class PaymentControllerTest {
                 .paymentMethod("BANK_TRANSFER")
                 .paymentStatus("PENDING")
                 .build();
-                
-        // Mock behavior of mapper to return a Payment when converting from DTO
         when(paymentMapper.toEntity(any(), eq(userId)))
                 .thenReturn(newPayment);
-                
-        // Mock behavior of service to return the payment
         when(paymentService.createPayment(any(Payment.class))).thenReturn(newPayment);
-        
-        // Mock behavior of mapper to return DTO when converting from Payment
         when(paymentMapper.toResponseDto(newPayment)).thenReturn(responseDTO);
-        
-        // Perform the request
         mockMvc.perform(post("/api/payments")
                 .header("X-User-Id", userId.toString())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.transactionId").exists())
-                .andExpect(jsonPath("$.courseId").value(courseId.toString()))                .andExpect(jsonPath("$.userId").value(userId.toString()))
+                .andExpect(jsonPath("$.courseId").value(courseId.toString()))
+                .andExpect(jsonPath("$.userId").value(userId.toString()))
                 .andExpect(jsonPath("$.paymentStatus").value("PENDING"))
                 .andExpect(jsonPath("$.paymentMethod").value("BANK_TRANSFER"));
     }

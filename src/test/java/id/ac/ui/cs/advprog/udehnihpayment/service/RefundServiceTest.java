@@ -14,8 +14,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
-import java.util.NoSuchElementException;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -41,7 +39,7 @@ public class RefundServiceTest {
 
     private Payment createTestPayment() {
         return Payment.builder()
-                .transactionId(UUID.randomUUID())
+                .transactionId(1L)
                 .userId(456L)
                 .courseId(123L)
                 .amount(new BigDecimal("50000"))
@@ -68,7 +66,7 @@ public class RefundServiceTest {
 
     @Test
     public void testRequestRefund_TransactionNotFound() {
-        UUID fakeId = UUID.randomUUID();
+        Long fakeId = 999L;
         when(paymentRepository.findByTransactionId(fakeId)).thenReturn(null);
 
         assertThrows(RuntimeException.class, () -> {
@@ -78,7 +76,7 @@ public class RefundServiceTest {
 
     @Test
     public void testRequestRefund_EmptyReason() {
-        UUID id = UUID.randomUUID();
+        Long id = 2L;
         Long userId = 456L;
         Payment payment = Payment.builder()
                 .transactionId(id)

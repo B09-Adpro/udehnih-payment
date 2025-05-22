@@ -25,7 +25,7 @@ public class PaymentRepositoryTest {
     @Test
     public void testSaveAndFindByIdTransaksi() {
         Payment payment = Payment.builder()
-                .transactionId(UUID.fromString("b6968765-7268-4604-8f32-2b21236ab1d9"))
+                .transactionId(789L)
                 .courseId(123L)
                 .userId(456L)
                 .amount(new BigDecimal("50000"))
@@ -34,7 +34,7 @@ public class PaymentRepositoryTest {
                 .build();
 
         when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
-        when(paymentRepository.findByTransactionId(UUID.fromString("b6968765-7268-4604-8f32-2b21236ab1d9"))).thenReturn(payment);
+        when(paymentRepository.findByTransactionId(789L)).thenReturn(payment);
 
         Payment saved = paymentRepository.save(payment);
         Payment found = paymentRepository.findByTransactionId(saved.getTransactionId());
@@ -59,15 +59,15 @@ public class PaymentRepositoryTest {
 
     @Test
     public void testFindByIdTransaksi_NotFound() {
-        when(paymentRepository.findByTransactionId(any(UUID.class))).thenReturn(null);
+        when(paymentRepository.findByTransactionId(any(Long.class))).thenReturn(null);
 
-        Payment result = paymentRepository.findByTransactionId(UUID.randomUUID());
+        Payment result = paymentRepository.findByTransactionId(999L);
         assertNull(result);
     }
 
     @Test
     public void testFindAndUpdatePayment() {
-        UUID id = UUID.randomUUID();
+        Long id = 789L;
         Long courseId = 123L;
         Long userId = 456L;
         Payment payment = Payment.builder()

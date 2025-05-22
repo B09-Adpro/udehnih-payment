@@ -20,7 +20,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public Payment createPayment(Payment payment) {
-        // Set status awal
+        payment.setTransactionId(UUID.randomUUID());
         payment.setPaymentStatus(PaymentStatus.PENDING);
         Payment saved = paymentRepository.save(payment);
 
@@ -45,8 +45,8 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public List<Payment> getPaymentsByUser(Long userId) {
-        return paymentRepository.findAllByUserId(userId);
+    public List<Payment> getAllPayments(Long userId) {
+        return paymentRepository.findAll();
     }
 
     @Override
@@ -54,11 +54,6 @@ public class PaymentServiceImpl implements PaymentService {
         return Arrays.stream(PaymentMethod.values())
                .map(PaymentMethod::getValue)
                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Payment> getAllPayments() {
-        return paymentRepository.findAll();
     }
 
     @Override

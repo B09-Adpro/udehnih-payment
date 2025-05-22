@@ -47,18 +47,15 @@ public class PaymentController {
             @RequestBody PaymentRequestDTO request,
             @RequestHeader("X-User-Id") Long userId) {
         
-        Payment payment = paymentMapper.toEntity(request, userId, PaymentMethod.BANK_TRANSFER.getValue());
-        payment.setAmount(new BigDecimal("50000"));
-        
+        Payment payment = paymentMapper.toEntity(request);
         Payment result = paymentService.createPayment(payment);
         
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(paymentMapper.toResponseDto(result));
+        return ResponseEntity.status(HttpStatus.CREATED).body(paymentMapper.toResponseDto(result));
     }
 
     @GetMapping("/history")
     public ResponseEntity<List<PaymentResponseDTO>> getTransactionHistory(@RequestHeader("X-User-Id") Long userId) {
-        List<Payment> payments = paymentService.getPaymentsByUser(userId);
+        List<Payment> payments = paymentService.getAllPayments(userId);
         List<PaymentResponseDTO> dtos = payments.stream().map(paymentMapper::toResponseDto).collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
     }
@@ -112,7 +109,6 @@ public class PaymentController {
         try {
             Payment payment = paymentService.findByTransactionId(transactionId);
             if (payment == null) {
-                // Kembalikan DTO berisi pesan error dengan status NOT_FOUND
                 RefundResponseDTO errorResponse = RefundResponseDTO.builder()
                         .status("ERROR")
                         .message("Payment not found for transactionId: " + transactionId)
@@ -125,7 +121,6 @@ public class PaymentController {
             return ResponseEntity.ok(refundMapper.toResponseDto(refund));
 
         } catch (Exception e) {
-            // Tangani exception lain dengan mengembalikan DTO error dan status INTERNAL_SERVER_ERROR
             RefundResponseDTO errorResponse = RefundResponseDTO.builder()
                     .status("ERROR")
                     .message("Error processing refund: " + e.getMessage())

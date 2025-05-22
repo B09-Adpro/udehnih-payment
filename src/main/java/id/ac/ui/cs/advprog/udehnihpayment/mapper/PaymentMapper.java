@@ -8,9 +8,7 @@ import id.ac.ui.cs.advprog.udehnihpayment.model.PaymentDetails;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Component
 public class PaymentMapper {
@@ -81,23 +79,6 @@ public class PaymentMapper {
     }
 
     /**
-     * Convert CreatePaymentRequestDTO to Payment entity
-     */
-    public Payment toEntity(PaymentRequestDTO dto, Long userId, String paymentMethod) {
-        if (dto == null) {
-            return null;
-        }
-
-        return Payment.builder()
-                .courseId(dto.getCourseId())
-                .userId(userId)
-                .paymentMethod(PaymentMethod.fromString(paymentMethod))
-                .paymentStatus(PaymentStatus.PENDING)
-                .expiresAt(LocalDateTime.now().plusDays(1))
-                .build();
-    }
-
-    /**
      * Convert PaymentDetails entity to PaymentDetailDTO.Details
      */
     public PaymentDetailDTO.Details toDetailsDto(PaymentDetails details) {
@@ -135,7 +116,7 @@ public class PaymentMapper {
     // Helper methods
     private String getBankNameForPaymentMethod(PaymentMethod method) {
         if (method == PaymentMethod.BANK_TRANSFER) {
-            return "Bank XYZ";  // Contoh saja, sesuaikan dengan kebutuhan
+            return "Bank BCA";
         }
         return null;
     }

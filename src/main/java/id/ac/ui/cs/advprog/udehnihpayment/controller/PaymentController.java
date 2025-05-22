@@ -17,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 // Implementasi HLN pada Controller
@@ -70,7 +69,7 @@ public class PaymentController {
     }
 
     @PostMapping("/{transactionId}/bank-transfer")
-    public ResponseEntity<PaymentResponseDTO> processBankTransferPayment(@PathVariable("transactionId") UUID transactionId) {
+    public ResponseEntity<PaymentResponseDTO> processBankTransferPayment(@PathVariable("transactionId") Long transactionId) {
         try {
             Payment processedPayment = paymentService.processPayment(
                     transactionId,
@@ -86,7 +85,7 @@ public class PaymentController {
     }
 
     @PostMapping("/{transactionId}/credit-card")
-    public ResponseEntity<PaymentResponseDTO> processCreditCardPayment(@PathVariable("transactionId") UUID transactionId) {
+    public ResponseEntity<PaymentResponseDTO> processCreditCardPayment(@PathVariable("transactionId") Long transactionId) {
         try {
             Payment processedPayment = paymentService.processPayment(
                     transactionId,
@@ -102,7 +101,7 @@ public class PaymentController {
     }
 
     @PostMapping("/{transactionId}/refund")
-    public ResponseEntity<RefundResponseDTO> requestRefund(@PathVariable("transactionId") UUID transactionId,
+    public ResponseEntity<RefundResponseDTO> requestRefund(@PathVariable("transactionId") Long transactionId,
                                                            @RequestParam("reason") String reason,
                                                            @RequestParam(value = "details", required = false) String details) {
         try {
@@ -130,7 +129,7 @@ public class PaymentController {
     }
 
     @GetMapping("/{transactionId}")
-    public ResponseEntity<PaymentDetailDTO> getTransactionDetails(@PathVariable("transactionId") UUID transactionId) {
+    public ResponseEntity<PaymentDetailDTO> getTransactionDetails(@PathVariable("transactionId") Long transactionId) {
         Payment payment = paymentService.findByTransactionId(transactionId);
 
         if (payment == null) {

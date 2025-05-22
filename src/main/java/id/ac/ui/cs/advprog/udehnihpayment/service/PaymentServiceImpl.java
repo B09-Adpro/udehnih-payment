@@ -63,7 +63,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public Payment processPayment(UUID transactionId, String paymentMethod) {
+    public Payment processPayment(Long transactionId, String paymentMethod) {
         Payment payment = paymentRepository.findByTransactionId(transactionId);
         PaymentMethod method = PaymentMethod.fromString(paymentMethod);
         if (payment == null) {
@@ -95,7 +95,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public Payment findByTransactionId(UUID transactionId) {
+    public Payment findByTransactionId(Long transactionId) {
         return paymentRepository.findByTransactionId(transactionId);
     }
 

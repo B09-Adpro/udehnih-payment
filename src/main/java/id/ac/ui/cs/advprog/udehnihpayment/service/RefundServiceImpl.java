@@ -21,7 +21,7 @@ public class RefundServiceImpl implements RefundService {
     private RefundRepository refundRepository;
 
     @Override
-    public Refund requestRefund(UUID transactionId, String reason, String details) {
+    public Refund requestRefund(Long transactionId, String reason, String details) {
         Payment payment = paymentRepository.findByTransactionId(transactionId);
 
         if (payment == null) {

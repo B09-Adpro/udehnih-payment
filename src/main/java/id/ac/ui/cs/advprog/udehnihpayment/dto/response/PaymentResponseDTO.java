@@ -15,7 +15,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class PaymentResponseDTO {
-    private UUID transactionId;
+    private Long transactionId;
     private Long courseId;
     private Long userId;
     private String courseTitle;

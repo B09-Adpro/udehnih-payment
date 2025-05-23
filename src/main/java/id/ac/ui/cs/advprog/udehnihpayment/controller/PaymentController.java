@@ -9,11 +9,13 @@ import id.ac.ui.cs.advprog.udehnihpayment.mapper.PaymentMapper;
 import id.ac.ui.cs.advprog.udehnihpayment.mapper.RefundMapper;
 import id.ac.ui.cs.advprog.udehnihpayment.model.Payment;
 import id.ac.ui.cs.advprog.udehnihpayment.model.Refund;
+import id.ac.ui.cs.advprog.udehnihpayment.security.AppUserDetails;
 import id.ac.ui.cs.advprog.udehnihpayment.service.PaymentService;
 import id.ac.ui.cs.advprog.udehnihpayment.service.RefundService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -43,8 +45,9 @@ public class PaymentController {
     @PostMapping
     public ResponseEntity<PaymentResponseDTO> createPayment(
             @RequestBody PaymentRequestDTO request,
-            @RequestHeader("X-User-Id") Long userId) {
+            @AuthenticationPrincipal AppUserDetails userDetails) {
         
+        Long userId = userDetails.getId();
         Payment payment = paymentMapper.toEntity(request, userId);
         Payment result = paymentService.createPayment(payment);
         
@@ -52,7 +55,8 @@ public class PaymentController {
     }
 
     @GetMapping("/history")
-    public ResponseEntity<List<PaymentResponseDTO>> getTransactionHistory(@RequestHeader("X-User-Id") Long userId) {
+    public ResponseEntity<List<PaymentResponseDTO>> getTransactionHistory(@AuthenticationPrincipal AppUserDetails userDetails) {
+        Long userId = userDetails.getId();
         List<Payment> payments = paymentService.getAllPayments(userId);
         List<PaymentResponseDTO> dtos = payments.stream().map(paymentMapper::toResponseDto).collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
@@ -102,8 +106,8 @@ public class PaymentController {
 
     @PostMapping("/{transactionId}/refund")
     public ResponseEntity<RefundResponseDTO> requestRefund(@PathVariable("transactionId") Long transactionId,
-                                                           @RequestParam("reason") String reason,
-                                                           @RequestParam(value = "details", required = false) String details) {
+                                                           @RequestParam String reason,
+                                                           @RequestParam(required = false) String details) {
         try {
             Payment payment = paymentService.findByTransactionId(transactionId);
             if (payment == null) {

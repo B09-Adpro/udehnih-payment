@@ -1,7 +1,7 @@
 package id.ac.ui.cs.advprog.udehnihpayment.exception;
 
-public class TransactionNotFound extends RuntimeException {
-    public TransactionNotFound(String message) {
+public class TransactionNotFoundException extends RuntimeException {
+    public TransactionNotFoundException(String message) {
         super(message);
     }
 }

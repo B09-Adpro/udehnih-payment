@@ -30,6 +30,7 @@ public class RefundRepositoryTest {
     public void setUp() {
         payment = Payment.builder()
                 .courseId(123L)
+                .enrollmentId(789L)
                 .paymentMethod(PaymentMethod.BANK_TRANSFER)
                 .paymentStatus(PaymentStatus.PAID)
                 .amount(new BigDecimal("50000"))

@@ -36,8 +36,8 @@ public class PaymentServiceTest {
         List<String> result = paymentService.getPaymentMethods();
         
         assertEquals(2, result.size());
-        assertTrue(result.contains("BankTransfer"));
-        assertTrue(result.contains("CreditCard"));
+        assertTrue(result.contains("Bank Transfer"));
+        assertTrue(result.contains("Credit Card"));
     }
 
     // UNHAPPY PATH: No payment methods available
@@ -105,7 +105,7 @@ public class PaymentServiceTest {
         
         // Act & Assert
         TransactionNotFoundException exception = assertThrows(TransactionNotFoundException.class, () -> {
-            paymentService.processPayment(transactionId, "BankTransfer");
+            paymentService.processPayment(transactionId, "Bank Transfer");
         });
         
         assertTrue(exception.getMessage().contains("not found"));
@@ -130,7 +130,7 @@ public class PaymentServiceTest {
         
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            paymentService.processPayment(transactionId, "CreditCard");
+            paymentService.processPayment(transactionId, "Credit Card");
         });
         
         assertTrue(exception.getMessage().contains("mismatch"));

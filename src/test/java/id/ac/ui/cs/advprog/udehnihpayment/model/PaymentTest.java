@@ -23,7 +23,7 @@ public class PaymentTest {
         assertEquals(1L, payment.getTransactionId());
         assertEquals(123L, payment.getCourseId());
         assertEquals(456L, payment.getUserId());
-        assertEquals("BankTransfer", payment.getPaymentMethod().toString());
+        assertEquals("Bank Transfer", payment.getPaymentMethod().toString());
         assertEquals("PENDING", payment.getPaymentStatus().toString());
         assertEquals(new BigDecimal("50000"), payment.getAmount());
     }
@@ -41,7 +41,7 @@ public class PaymentTest {
         assertEquals(2L, payment.getTransactionId());
         assertEquals(123L, payment.getCourseId());
         assertEquals(456L, payment.getUserId());
-        assertEquals("CreditCard", payment.getPaymentMethod().toString());
+        assertEquals("Credit Card", payment.getPaymentMethod().toString());
         assertEquals("PENDING", payment.getPaymentStatus().toString());
         assertEquals(new BigDecimal("75000"), payment.getAmount());
     }

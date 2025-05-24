@@ -58,4 +58,22 @@ public class GlobalExceptionHandler {
         response.put("message", e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
+
+    @ExceptionHandler(RefundTooLateException.class)
+    public ResponseEntity<Map<String, Object>> handleRefundTooLateException(RefundTooLateException e) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", "Refund no longer available");
+        response.put("message", e.getMessage());
+        response.put("status_code", 403);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+    
+    @ExceptionHandler(UnauthorizedRefundException.class)
+    public ResponseEntity<Map<String, Object>> handleUnauthorizedRefundException(UnauthorizedRefundException e) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", "Unauthorized");
+        response.put("message", e.getMessage());
+        response.put("status_code", 401);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
 }

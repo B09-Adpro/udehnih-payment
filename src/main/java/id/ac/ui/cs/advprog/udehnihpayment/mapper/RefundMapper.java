@@ -56,12 +56,36 @@ public class RefundMapper {
             return null;
         }
         
+        // Gunakan note dari refund jika ada
+        String noteText = refund.getNote(); 
+        
+        // Jika note kosong, gunakan default berdasarkan status
+        if (noteText == null) {
+            noteText = "";
+        }
+        
         return RefundResponseDTO.builder()
                 .refundId(refund.getId())
+                .transactionId(refund.getPayment().getTransactionId())
+                .reason(refund.getReason())
+                .details(refund.getDetails())
                 .status(refund.getRefundStatus().getValue())
-                .message("Refund request has been submitted successfully.")
-                .note("Your refund request is being processed by admin.")
+                .message(getMessageForStatus(refund.getRefundStatus()))
+                .note(noteText)
                 .build();
+    }
+
+    private String getMessageForStatus(RefundStatus status) {
+        switch (status) {
+            case PENDING:
+                return "Refund request has been submitted successfully.";
+            case APPROVED:
+                return "Your refund request has been approved.";
+            case REJECTED:
+                return "Your refund request has been rejected.";
+            default:
+                return "Unknown refund status: " + status.getValue();
+        }
     }
     
     /**

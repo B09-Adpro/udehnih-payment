@@ -3,6 +3,7 @@ package id.ac.ui.cs.advprog.udehnihpayment.service;
 import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentMethod;
 import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentStatus;
 import id.ac.ui.cs.advprog.udehnihpayment.enums.RefundStatus;
+import id.ac.ui.cs.advprog.udehnihpayment.exception.InvalidRefundReasonException;
 import id.ac.ui.cs.advprog.udehnihpayment.model.Payment;
 import id.ac.ui.cs.advprog.udehnihpayment.model.Refund;
 import id.ac.ui.cs.advprog.udehnihpayment.repository.PaymentRepository;
@@ -14,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -45,6 +47,7 @@ public class RefundServiceTest {
                 .amount(new BigDecimal("50000"))
                 .paymentMethod(PaymentMethod.BANK_TRANSFER)
                 .paymentStatus(PaymentStatus.PENDING)
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 
@@ -55,6 +58,7 @@ public class RefundServiceTest {
                 .payment(payment)
                 .reason("Not satisfied")
                 .refundStatus(RefundStatus.PENDING)
+                .details("Too basic")
                 .build());
 
         Refund result = refundService.requestRefund(payment.getTransactionId(), "Not satisfied", "Too basic");
@@ -86,7 +90,7 @@ public class RefundServiceTest {
 
         when(paymentRepository.findByTransactionId(id)).thenReturn(payment);
 
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(InvalidRefundReasonException.class, () -> {
             refundService.requestRefund(id, "", "some detail");
         });
     }

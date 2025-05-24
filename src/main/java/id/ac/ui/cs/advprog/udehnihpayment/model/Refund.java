@@ -31,6 +31,8 @@ public class Refund {
 
     private String details;
 
+    private String note;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime requestedAt;
 

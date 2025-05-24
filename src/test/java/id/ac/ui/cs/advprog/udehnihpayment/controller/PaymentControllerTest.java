@@ -121,14 +121,14 @@ public class PaymentControllerTest {
 
     @Test
     public void testGetPaymentMethods_Success() throws Exception {
-        List<String> methods = Arrays.asList("BankTransfer", "CreditCard");
+        List<String> methods = Arrays.asList("Bank Transfer", "Credit Card");
         when(paymentService.getPaymentMethods()).thenReturn(methods);
 
         mockMvc.perform(get("/api/payments/methods")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0]").value("BankTransfer"))
-                .andExpect(jsonPath("$[1]").value("CreditCard"));
+                .andExpect(jsonPath("$[0]").value("Bank Transfer"))
+                .andExpect(jsonPath("$[1]").value("Credit Card"));
     }
 
     @Test
@@ -143,7 +143,7 @@ public class PaymentControllerTest {
     @Test
     public void testProcessPayment_Success() throws Exception {
         // Setup
-        String paymentMethod = "BankTransfer";
+        String paymentMethod = "Bank Transfer";
         Payment processedPayment = Payment.builder()
                 .transactionId(transactionId)
                 .courseId(courseId)
@@ -159,7 +159,7 @@ public class PaymentControllerTest {
                 .userId(userId)
                 .amount(new BigDecimal("50000"))
                 .paymentStatus("PENDING")
-                .paymentMethod("BankTransfer")
+                .paymentMethod("Bank Transfer")
                 .build();
 
         when(paymentService.processPayment(eq(transactionId), eq(paymentMethod))).thenReturn(processedPayment);
@@ -172,7 +172,7 @@ public class PaymentControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.transactionId").value(transactionId))
                 .andExpect(jsonPath("$.paymentStatus").value("PENDING"))
-                .andExpect(jsonPath("$.paymentMethod").value("BankTransfer"));
+                .andExpect(jsonPath("$.paymentMethod").value("Bank Transfer"));
     }
 
     @Test
@@ -218,9 +218,9 @@ public class PaymentControllerTest {
 
         mockMvc.perform(get("/api/payments/{transactionId}", transactionId)
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isForbidden())
+                .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.status").value("error"))
-                .andExpect(jsonPath("$.message").value("You don't have permission to access this transaction"));
+                .andExpect(jsonPath("$.message").value("Unauthorized access"));
     }
     
     @Test

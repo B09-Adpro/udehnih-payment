@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.udehnihpayment.service;
 
 import id.ac.ui.cs.advprog.udehnihpayment.clients.CourseServiceClient;
+import id.ac.ui.cs.advprog.udehnihpayment.clients.DashboardServiceClient;
 import id.ac.ui.cs.advprog.udehnihpayment.dto.response.PaymentDetailDTO;
 import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentMethod;
 import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentStatus;
@@ -28,8 +29,14 @@ public class PaymentServiceImpl implements PaymentService {
     @Autowired
     private CourseServiceClient courseServiceClient;
 
+    @Autowired
+    private DashboardServiceClient dashboardServiceClient;
+
     @Value("${services.course.api-key}")
     private String courseApiKey;
+
+    @Value("${services.dashboard.api-key}")
+    private String dashboardApiKey;
 
     @Override
     public Payment createPayment(Payment payment) {
@@ -158,9 +165,9 @@ public class PaymentServiceImpl implements PaymentService {
         if (updateRequest.isAdminApproval() && !wasApproved) {
             try {
                 notifyCourseService(payment);
+                notifyDashboardAboutPayment(payment);
             } catch (Exception e) {
-                // Log error but don't disrupt transaction
-                System.err.println("Error notifying course service: " + e.getMessage());
+                System.err.println("Error notifying services: " + e.getMessage());
             }
         }
         
@@ -178,6 +185,34 @@ public class PaymentServiceImpl implements PaymentService {
                     " at " + payment.getPaymentDetails().getApprovedAt());
         
         courseServiceClient.updateEnrollmentStatus(courseApiKey, paymentData);
+    }
+
+    private void notifyDashboardAboutPayment(Payment payment) {
+        Map<String, Object> paymentData = new HashMap<>();
+        paymentData.put("transactionId", payment.getTransactionId());
+        paymentData.put("courseId", payment.getCourseId());
+        paymentData.put("userId", payment.getUserId());
+        paymentData.put("enrollmentId", payment.getEnrollmentId());
+        paymentData.put("amount", payment.getAmount());
+        paymentData.put("status", payment.getPaymentStatus().getValue());
+        paymentData.put("paymentMethod", payment.getPaymentMethod().getValue());
+        
+        if (payment.getPaymentDetails() != null) {
+            paymentData.put("approvedBy", payment.getPaymentDetails().getApprovedBy());
+            if (payment.getPaymentDetails().getApprovedAt() != null) {
+                paymentData.put("approvedAt", payment.getPaymentDetails().getApprovedAt().toString());
+            }
+            paymentData.put("adminApproval", payment.getPaymentDetails().isAdminApproval());
+        }
+        
+        paymentData.put("updatedAt", payment.getUpdatedAt().toString());
+        paymentData.put("createdAt", payment.getCreatedAt().toString());
+        
+        try {
+            dashboardServiceClient.notifyPaymentUpdate(dashboardApiKey, paymentData);
+        } catch (Exception e) {
+            System.err.println("Error notifying dashboard service about payment: " + e.getMessage());
+        }
     }
 
     private String processPaymentWithStrategy(Payment payment, PaymentStrategy strategy) {

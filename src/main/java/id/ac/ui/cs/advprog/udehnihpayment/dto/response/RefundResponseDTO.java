@@ -11,7 +11,10 @@ import lombok.NoArgsConstructor;
 @Builder
 public class RefundResponseDTO {
     private Long refundId;
+    private Long transactionId;
     private String status;
     private String message;
     private String note;
+    private String reason;
+    private String details; 
 }

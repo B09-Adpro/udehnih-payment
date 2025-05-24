@@ -10,5 +10,6 @@ import java.util.List;
 public interface RefundRepository extends JpaRepository<Refund, Long> {
 
     Refund findByPayment_TransactionId(Long transactionId);
+    List<Refund> findByPaymentTransactionId(Long transactionId);
     List<Refund> findAll();
 }

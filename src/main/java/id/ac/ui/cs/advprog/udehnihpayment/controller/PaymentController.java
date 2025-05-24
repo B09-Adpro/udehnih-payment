@@ -3,8 +3,9 @@ package id.ac.ui.cs.advprog.udehnihpayment.controller;
 import id.ac.ui.cs.advprog.udehnihpayment.dto.response.PaymentResponseDTO;
 import id.ac.ui.cs.advprog.udehnihpayment.dto.response.PaymentDetailDTO;
 import id.ac.ui.cs.advprog.udehnihpayment.dto.response.RefundResponseDTO;
-import id.ac.ui.cs.advprog.udehnihpayment.dto.request.PaymentRequestDTO;
 import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentMethod;
+import id.ac.ui.cs.advprog.udehnihpayment.dto.request.PaymentRequestDTO;
+import id.ac.ui.cs.advprog.udehnihpayment.exception.TransactionNotFoundException;
 import id.ac.ui.cs.advprog.udehnihpayment.mapper.PaymentMapper;
 import id.ac.ui.cs.advprog.udehnihpayment.mapper.RefundMapper;
 import id.ac.ui.cs.advprog.udehnihpayment.model.Payment;
@@ -13,12 +14,15 @@ import id.ac.ui.cs.advprog.udehnihpayment.security.AppUserDetails;
 import id.ac.ui.cs.advprog.udehnihpayment.service.PaymentService;
 import id.ac.ui.cs.advprog.udehnihpayment.service.RefundService;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 // Implementasi HLN pada Controller
@@ -29,7 +33,13 @@ public class PaymentController {
     private final PaymentService paymentService;
     private final RefundService refundService;
     private final PaymentMapper paymentMapper;
-    private final RefundMapper refundMapper;  
+    private final RefundMapper refundMapper;
+
+    @Value("${services.course.api-key}")
+    private String courseApiKey;
+
+    @Value("${services.dashboard.api-key}")
+    private String dashboardApiKey;
 
     public PaymentController(
             PaymentService paymentService, 
@@ -42,16 +52,42 @@ public class PaymentController {
         this.refundMapper = refundMapper;
     }
 
+    private boolean validateCourseApiKey(String apiKey) {
+        return courseApiKey != null && courseApiKey.equals(apiKey);
+    }
+
+    private boolean validateDashboardApiKey(String apiKey) {
+        return dashboardApiKey != null && dashboardApiKey.equals(apiKey);
+    }
+
     @PostMapping
-    public ResponseEntity<PaymentResponseDTO> createPayment(
+    public ResponseEntity<Map<String, Object>> createPayment(
             @RequestBody PaymentRequestDTO request,
-            @AuthenticationPrincipal AppUserDetails userDetails) {
-        
-        Long userId = userDetails.getId();
-        Payment payment = paymentMapper.toEntity(request, userId);
+            @RequestHeader (value = "X-API-Key", required=true) String CourseApiKey) {
+
+        // Validate API key
+        if (!validateCourseApiKey(CourseApiKey)) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "Unauthorized access");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+        }
+
+        Payment payment = paymentMapper.toEntity(request);
         Payment result = paymentService.createPayment(payment);
-        
-        return ResponseEntity.status(HttpStatus.CREATED).body(paymentMapper.toResponseDto(result));
+
+        PaymentResponseDTO responseDTO = paymentMapper.toResponseDto(result);
+        Map<String, Object> response = new HashMap<>();
+        response.put("transactionId", responseDTO.getTransactionId());
+        response.put("courseId", responseDTO.getCourseId());
+        response.put("userId", responseDTO.getUserId());
+        response.put("amount", responseDTO.getAmount());
+        response.put("paymentStatus", responseDTO.getPaymentStatus());
+        response.put("paymentMethod", responseDTO.getPaymentMethod());
+        response.put("createdAt", responseDTO.getCreatedAt());
+        response.put("updatedAt", responseDTO.getUpdatedAt());
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/history")
@@ -62,6 +98,63 @@ public class PaymentController {
         return ResponseEntity.ok(dtos);
     }
 
+    @GetMapping("/transactions")
+    public ResponseEntity<?> getAllPayments(
+            @RequestHeader(value = "X-API-Key", required = true) String apiKey) {
+        
+        // Validate API key
+        if (!validateDashboardApiKey(apiKey)) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "Unauthorized access");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+        }
+        
+        List<Payment> payments = paymentService.getAllPayments();
+        List<PaymentResponseDTO> dtos = payments.stream()
+                .map(paymentMapper::toResponseDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
+
+    @GetMapping("/{transactionId}")
+    public ResponseEntity<?> getTransactionDetails(
+        @PathVariable("transactionId") Long transactionId,
+        @RequestHeader(value = "X-API-Key", required = false) String apiKey,
+        @AuthenticationPrincipal AppUserDetails userDetails) {
+        
+        // Cek metode autentikasi
+        boolean isServiceCall = apiKey != null && validateDashboardApiKey(apiKey);
+        boolean isAuthenticated = userDetails != null;
+        
+        // Tolak jika tidak ada autentikasi sama sekali
+        if (!isServiceCall && !isAuthenticated) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "Authentication required");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+        }
+        
+        // Ambil data payment
+        Payment payment = paymentService.findByTransactionId(transactionId);
+        
+        if (payment == null) {
+            throw new TransactionNotFoundException("Transaction not found with id: " + transactionId);
+        }
+        
+        if (!isServiceCall && isAuthenticated) {
+            if (!payment.getUserId().equals(userDetails.getId())) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("status", "error");
+                errorResponse.put("message", "Unauthorized access");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+            }
+        }
+        
+        PaymentDetailDTO paymentDetailDTO = paymentMapper.toDetailDto(payment);
+        return ResponseEntity.ok(paymentDetailDTO);
+    }
+
     @GetMapping("/methods")
     public ResponseEntity<List<String>> getPaymentMethods() {
         try {
@@ -69,6 +162,23 @@ public class PaymentController {
             return ResponseEntity.ok(methods);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/{transactionId}/process")
+    public ResponseEntity<PaymentResponseDTO> processPayment(
+            @PathVariable("transactionId") Long transactionId,
+            @RequestParam("paymentMethod") String paymentMethod) {
+
+        try {
+            Payment processedPayment = paymentService.processPayment(transactionId, paymentMethod);
+            return ResponseEntity.ok(paymentMapper.toResponseDto(processedPayment));
+        } catch (IllegalArgumentException e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        } catch (Exception e) {
+            throw new RuntimeException("Error processing payment: " + e.getMessage());
         }
     }
 
@@ -110,13 +220,9 @@ public class PaymentController {
                                                            @RequestParam(required = false) String details) {
         try {
             Payment payment = paymentService.findByTransactionId(transactionId);
+
             if (payment == null) {
-                RefundResponseDTO errorResponse = RefundResponseDTO.builder()
-                        .status("ERROR")
-                        .message("Payment not found for transactionId: " + transactionId)
-                        .errorMessage("Payment not found for transactionId: " + transactionId)
-                        .build();
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+                throw new TransactionNotFoundException("Payment not found for transactionId: " + transactionId);
             }
 
             Refund refund = refundService.requestRefund(transactionId, reason, details);
@@ -126,24 +232,32 @@ public class PaymentController {
             RefundResponseDTO errorResponse = RefundResponseDTO.builder()
                     .status("ERROR")
                     .message("Error processing refund: " + e.getMessage())
-                    .errorMessage(e.getMessage())
                     .build();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 
-    @GetMapping("/{transactionId}")
-    public ResponseEntity<PaymentDetailDTO> getTransactionDetails(@PathVariable("transactionId") Long transactionId) {
-        Payment payment = paymentService.findByTransactionId(transactionId);
+    @PutMapping("/{transactionId}/status")
+    public ResponseEntity<PaymentResponseDTO> updatePaymentStatus(
+            @PathVariable("transactionId") Long transactionId,
+            @RequestBody PaymentDetailDTO.Details updateRequest,
+            @RequestHeader(value = "X-API-Key", required = true) String apiKey) {
 
-        if (payment == null) {
-            PaymentDetailDTO errorDTO = new PaymentDetailDTO();
-            errorDTO.setErrorMessage("Transaction Not Found");
-            errorDTO.setStatusCode(HttpStatus.NOT_FOUND.value());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorDTO);
+        if (!validateDashboardApiKey(apiKey)) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "Unauthorized access");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
 
-        PaymentDetailDTO paymentDetailDTO = paymentMapper.toDetailDto(payment);
-        return ResponseEntity.ok(paymentDetailDTO);
+        try {
+            Payment updatedPayment = paymentService.updatePaymentStatus(transactionId, updateRequest);
+            return ResponseEntity.ok(paymentMapper.toResponseDto(updatedPayment));
+
+        } catch (TransactionNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Error updating payment status: " + e.getMessage());
+        }
     }
 }

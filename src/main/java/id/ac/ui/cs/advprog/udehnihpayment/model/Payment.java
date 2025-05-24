@@ -25,6 +25,9 @@ public class Payment {
     @Column(nullable = false)
     private Long userId;
 
+    @Column(nullable = false)
+    private Long enrollmentId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PaymentStatus paymentStatus;

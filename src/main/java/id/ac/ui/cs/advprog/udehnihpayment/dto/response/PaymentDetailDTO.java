@@ -20,8 +20,6 @@ public class PaymentDetailDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    private String errorMessage;
-    private int statusCode;
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

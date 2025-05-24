@@ -12,8 +12,10 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 public class PaymentRequestDTO {
+    private Long enrollmentId;
+    private Long studentId;
     private Long courseId;
-    private Long userId;
-    private BigDecimal coursePrice;
+    private BigDecimal amount;
     private String paymentMethod;
+    private Long timestamp;
 }

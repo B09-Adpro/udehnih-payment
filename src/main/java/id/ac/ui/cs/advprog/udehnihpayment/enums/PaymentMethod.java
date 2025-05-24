@@ -3,8 +3,8 @@ package id.ac.ui.cs.advprog.udehnihpayment.enums;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum PaymentMethod {
-    BANK_TRANSFER("BankTransfer"),
-    CREDIT_CARD("CreditCard");
+    BANK_TRANSFER("Bank Transfer"),
+    CREDIT_CARD("Credit Card");
 
     private final String value;
 

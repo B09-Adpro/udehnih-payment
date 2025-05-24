@@ -1,16 +1,22 @@
 package id.ac.ui.cs.advprog.udehnihpayment.service;
 
+import id.ac.ui.cs.advprog.udehnihpayment.clients.CourseServiceClient;
+import id.ac.ui.cs.advprog.udehnihpayment.dto.response.PaymentDetailDTO;
 import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentMethod;
 import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentStatus;
+import id.ac.ui.cs.advprog.udehnihpayment.exception.TransactionNotFoundException;
 import id.ac.ui.cs.advprog.udehnihpayment.model.Payment;
+import id.ac.ui.cs.advprog.udehnihpayment.model.PaymentDetails;
 import id.ac.ui.cs.advprog.udehnihpayment.repository.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -18,6 +24,12 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Autowired
     private PaymentRepository paymentRepository;
+
+    @Autowired
+    private CourseServiceClient courseServiceClient;
+
+    @Value("${services.course.api-key}")
+    private String courseApiKey;
 
     @Override
     public Payment createPayment(Payment payment) {
@@ -56,6 +68,11 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    public List<Payment> getAllPayments() {
+        return paymentRepository.findAll();
+    }
+
+    @Override
     public List<String> getPaymentMethods() {
         return Arrays.stream(PaymentMethod.values())
                .map(PaymentMethod::getValue)
@@ -67,7 +84,7 @@ public class PaymentServiceImpl implements PaymentService {
         Payment payment = paymentRepository.findByTransactionId(transactionId);
         PaymentMethod method = PaymentMethod.fromString(paymentMethod);
         if (payment == null) {
-            throw new IllegalArgumentException("Payment with ID " + transactionId + " not found");
+            throw new TransactionNotFoundException("Payment with ID " + transactionId + " not found");
         }
 
         if (!payment.getPaymentMethod().equals(method)) {
@@ -97,6 +114,70 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public Payment findByTransactionId(Long transactionId) {
         return paymentRepository.findByTransactionId(transactionId);
+    }
+
+    @Override
+    public Payment updatePaymentStatus(Long transactionId, PaymentDetailDTO.Details updateRequest) {
+        Payment payment = findByTransactionId(transactionId);
+        
+        if (payment == null) {
+            throw new TransactionNotFoundException("Payment not found for transactionId: " + transactionId);
+        }
+        
+        // Update payment status berdasarkan approval status
+        if (updateRequest.isAdminApproval()) {
+            payment.setPaymentStatus(PaymentStatus.PAID);
+        }
+        
+        // Pastikan objek PaymentDetails ada
+        if (payment.getPaymentDetails() == null) {
+            payment.setPaymentDetails(new PaymentDetails());
+        }
+
+        boolean wasApproved = payment.getPaymentDetails() != null && payment.getPaymentDetails().isAdminApproval();
+        
+        // Set semua properti dari DTO ke entitas
+        PaymentDetails details = payment.getPaymentDetails();
+        
+        details.setConfirmation(updateRequest.isConfirmation());
+        if (updateRequest.isConfirmation()) {
+            details.setConfirmedAt(updateRequest.getConfirmedAt() != null ? 
+                                updateRequest.getConfirmedAt() : LocalDateTime.now());
+        }
+        
+        details.setAdminApproval(updateRequest.isAdminApproval());
+        if (updateRequest.isAdminApproval()) {
+            details.setApprovedAt(updateRequest.getApprovedAt() != null ? 
+                                updateRequest.getApprovedAt() : LocalDateTime.now());
+            details.setApprovedBy(updateRequest.getApprovedBy());
+        }
+        
+        payment.preUpdate();
+        payment = paymentRepository.save(payment);
+
+        if (updateRequest.isAdminApproval() && !wasApproved) {
+            try {
+                notifyCourseService(payment);
+            } catch (Exception e) {
+                // Log error but don't disrupt transaction
+                System.err.println("Error notifying course service: " + e.getMessage());
+            }
+        }
+        
+        return payment;
+    }
+
+    private void notifyCourseService(Payment payment) {
+        Map<String, Object> paymentData = new HashMap<>();
+        paymentData.put("enrollmentId", payment.getEnrollmentId());
+        paymentData.put("studentId", payment.getUserId());
+        paymentData.put("courseId", payment.getCourseId());
+        paymentData.put("approved", payment.getPaymentStatus() == PaymentStatus.PAID);
+        paymentData.put("message", "Payment processed and approved by " + 
+                    payment.getPaymentDetails().getApprovedBy() + 
+                    " at " + payment.getPaymentDetails().getApprovedAt());
+        
+        courseServiceClient.updateEnrollmentStatus(courseApiKey, paymentData);
     }
 
     private String processPaymentWithStrategy(Payment payment, PaymentStrategy strategy) {

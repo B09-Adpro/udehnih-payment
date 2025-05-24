@@ -58,15 +58,16 @@ public class PaymentMapper {
     /**
      * Convert PaymentRequestDTO to Payment entity
      */
-    public Payment toEntity(PaymentRequestDTO dto, Long userId) {
+    public Payment toEntity(PaymentRequestDTO dto) {
         if (dto == null) {
             return null;
         }
 
         return Payment.builder()
+                .enrollmentId(dto.getEnrollmentId())
                 .courseId(dto.getCourseId())
-                .userId(userId)
-                .amount(dto.getCoursePrice())
+                .userId(dto.getStudentId())
+                .amount(dto.getAmount())
                 .paymentMethod(PaymentMethod.fromString(dto.getPaymentMethod()))
                 .build();
     }

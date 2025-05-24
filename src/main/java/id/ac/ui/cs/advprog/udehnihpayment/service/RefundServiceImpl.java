@@ -28,7 +28,6 @@ public class RefundServiceImpl implements RefundService {
             throw new RuntimeException("Payment not found for transactionId: " + transactionId);
         }
 
-        // Validasi alasan refund
         if (reason == null || reason.trim().isEmpty()) {
             throw new IllegalArgumentException("Refund reason cannot be empty");
         }

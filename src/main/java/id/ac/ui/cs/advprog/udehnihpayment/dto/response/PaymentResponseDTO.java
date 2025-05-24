@@ -1,4 +1,3 @@
-// src/main/java/id/ac/ui/cs/advprog/udehnihpayment/dto/PaymentResponseDTO.java
 package id.ac.ui.cs.advprog.udehnihpayment.dto.response;
 
 import lombok.AllArgsConstructor;
@@ -8,7 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Data
 @NoArgsConstructor

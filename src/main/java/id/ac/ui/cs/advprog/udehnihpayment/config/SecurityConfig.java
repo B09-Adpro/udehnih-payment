@@ -46,6 +46,12 @@ public class SecurityConfig {
                                         hasRole("STUDENT"),
                                         not(hasRole("TUTOR"))
                                 ))
+                        .requestMatchers(HttpMethod.PUT, "/api/payments/{transactionId}/status").hasRole("STAFF")
+                        .requestMatchers(HttpMethod.PUT, "/api/payments/{refundId}/status}").hasRole("STAFF")
+                        .requestMatchers(HttpMethod.POST, "/api/payments/process").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/payments/transactions").hasRole("STAFF")
+                        .requestMatchers(HttpMethod.GET, "/api/payments/refunds").hasRole("STAFF")
+                        .requestMatchers(HttpMethod.GET, "/api/payments/refunds/{refundId}").hasRole("STAFF")
                         .anyRequest().authenticated()
                 );
         

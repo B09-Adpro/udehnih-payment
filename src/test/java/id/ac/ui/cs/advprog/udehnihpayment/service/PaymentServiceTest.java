@@ -2,6 +2,7 @@ package id.ac.ui.cs.advprog.udehnihpayment.service;
 
 import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentMethod;
 import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentStatus;
+import id.ac.ui.cs.advprog.udehnihpayment.exception.TransactionNotFoundException;
 import id.ac.ui.cs.advprog.udehnihpayment.model.Payment;
 import id.ac.ui.cs.advprog.udehnihpayment.repository.PaymentRepository;
 import org.junit.jupiter.api.Test;
@@ -12,7 +13,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -104,7 +104,7 @@ public class PaymentServiceTest {
         when(paymentRepository.findByTransactionId(transactionId)).thenReturn(null);
         
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+        TransactionNotFoundException exception = assertThrows(TransactionNotFoundException.class, () -> {
             paymentService.processPayment(transactionId, "BankTransfer");
         });
         

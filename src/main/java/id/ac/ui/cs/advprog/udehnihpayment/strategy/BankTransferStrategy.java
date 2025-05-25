@@ -33,7 +33,6 @@ public class BankTransferStrategy implements PaymentStrategy {
     
     @Override
     public boolean validatePayment(Payment payment) {
-        // Validasi pembayaran bank transfer
         return payment != null && 
                payment.getAmount().compareTo(BigDecimal.ZERO) > 0 &&
                payment.getCourseId() != null;

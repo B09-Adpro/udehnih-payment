@@ -24,41 +24,29 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                        
-                        // ========== ENDPOINTS DENGAN API KEY VALIDATION (permitAll) ==========
-                        // Course Service API - Create Payment
-                        .requestMatchers(HttpMethod.POST, "/api/payments").permitAll()
-                        
-                        // Dashboard Service API - Get all data
-                        .requestMatchers(HttpMethod.GET, "/api/payments/transactions").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/payments/refunds").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/payments/refunds/*").permitAll()
-                        
-                        // Dashboard Service API - Update status
-                        .requestMatchers(HttpMethod.PUT, "/api/payments/*/status").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/api/payments/refunds/*/status").permitAll()
-                        
-                        // Mixed Authentication - API Key OR JWT
-                        .requestMatchers(HttpMethod.GET, "/api/payments/*").permitAll()
-                        
-                        // ========== PUBLIC ENDPOINTS (No Authentication) ==========
-                        .requestMatchers(HttpMethod.GET, "/api/payments/methods").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/payments/process").permitAll()
-                        
-                        // ========== JWT AUTHENTICATION REQUIRED ==========
-                        // Student endpoints
-                        .requestMatchers(HttpMethod.GET, "/api/payments/history").hasRole("STUDENT")
-                        .requestMatchers(HttpMethod.POST, "/api/payments/*/bank-transfer").hasRole("STUDENT")
-                        .requestMatchers(HttpMethod.POST, "/api/payments/*/credit-card").hasRole("STUDENT")
-                        .requestMatchers(HttpMethod.POST, "/api/payments/*/refund").hasRole("STUDENT")
-                        
-                        // ========== FALLBACK ==========
-                        .anyRequest().authenticated()
-                );
-        
+            .csrf(AbstractHttpConfigurer::disable)
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+
+                .requestMatchers(HttpMethod.GET, "/api/payments/history").hasRole("STUDENT")
+                .requestMatchers(HttpMethod.POST, "/api/payments/*/bank-transfer").hasRole("STUDENT")
+                .requestMatchers(HttpMethod.POST, "/api/payments/*/credit-card").hasRole("STUDENT")
+                .requestMatchers(HttpMethod.POST, "/api/payments/*/refund").hasRole("STUDENT")
+
+                .requestMatchers(HttpMethod.POST, "/api/payments").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/payments/transactions").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/payments/refunds").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/payments/refunds/*").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/api/payments/*/status").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/api/payments/refunds/*/status").permitAll()
+
+                .requestMatchers(HttpMethod.GET, "/api/payments/*").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/payments/methods").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/payments/process").permitAll()
+
+                .anyRequest().authenticated()
+            );
+
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

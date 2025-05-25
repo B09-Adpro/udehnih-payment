@@ -15,6 +15,8 @@ public class PaymentRequestDTO {
     private Long enrollmentId;
     private Long studentId;
     private Long courseId;
+    private String courseTitle;
+    private String tutorName;
     private BigDecimal amount;
     private String paymentMethod;
     private Long timestamp;

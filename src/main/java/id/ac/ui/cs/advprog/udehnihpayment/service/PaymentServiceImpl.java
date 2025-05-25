@@ -10,7 +10,10 @@ import id.ac.ui.cs.advprog.udehnihpayment.exception.UnauthorizedAccessException;
 import id.ac.ui.cs.advprog.udehnihpayment.model.Payment;
 import id.ac.ui.cs.advprog.udehnihpayment.model.PaymentDetails;
 import id.ac.ui.cs.advprog.udehnihpayment.repository.PaymentRepository;
+import id.ac.ui.cs.advprog.udehnihpayment.strategy.CreditCardStrategy;
 import id.ac.ui.cs.advprog.udehnihpayment.strategy.PaymentStrategy;
+import jakarta.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -33,6 +36,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Autowired
     private DashboardServiceClient dashboardServiceClient;
+
+    @Autowired
+    private CreditCardStrategy creditCardStrategy;
 
     @Value("${services.course.api-key}")
     private String courseApiKey;
@@ -108,6 +114,12 @@ public class PaymentServiceImpl implements PaymentService {
         PaymentStrategy strategy = findStrategy(method);
         String result = strategy.processPayment(payment);
         System.out.println("Payment processing result: " + result);
+
+        if (method == PaymentMethod.BANK_TRANSFER) {
+            payment.setPaymentStatus(PaymentStatus.WAITING_PAYMENT);
+            payment.preUpdate();
+            payment = paymentRepository.save(payment);
+        }
 
         return payment;
     }
@@ -215,24 +227,55 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
+    public Payment processCreditCardPayment(Long transactionId, String cardNumber, String cvc, String expiryDate) {
+        Payment payment = findByTransactionId(transactionId);
+        if (payment == null) {
+            throw new IllegalArgumentException("Payment not found");
+        }
+        if (!creditCardStrategy.validateCardDetails(cardNumber, cvc)) {
+            throw new IllegalArgumentException("Nomor kartu atau CVC tidak valid");
+        }
+        if (!creditCardStrategy.validateExpiryDate(expiryDate)) {
+            throw new IllegalArgumentException("Tanggal kadaluarsa tidak valid");
+        }
+        // Set status menjadi PAID (atau sesuai kebutuhan)
+        payment.setPaymentStatus(PaymentStatus.PAID);
+        payment.preUpdate();
+        return paymentRepository.save(payment);
+    }
+
     @Override
-    public Payment confirmBankTransfer(Long transactionId, Long userId) {
+    @Transactional
+    public Payment confirmBankTransfer(Long transactionId, Long userId) {        
         Payment payment = findByTransactionId(transactionId);
         if (payment == null) throw new TransactionNotFoundException("Payment not found");
+        
         if (!payment.getUserId().equals(userId)) throw new UnauthorizedAccessException("Not your payment");
         if (payment.getPaymentMethod() != PaymentMethod.BANK_TRANSFER)
             throw new IllegalArgumentException("Confirmation only for bank transfer payments");
-        if (payment.getPaymentStatus() != PaymentStatus.PENDING)
-            throw new IllegalStateException("Payment is not in PENDING state");
-        if (payment.getPaymentDetails() != null && payment.getPaymentDetails().isConfirmation())
-            throw new IllegalStateException("Transfer already confirmed");
+        
+        if (payment.getPaymentStatus() != PaymentStatus.WAITING_PAYMENT)
+            throw new IllegalStateException("Payment is not in WAITING_PAYMENT state");
+            
+        boolean isAlreadyConfirmed = payment.getPaymentDetails() != null && payment.getPaymentDetails().isConfirmation();        
+        if (isAlreadyConfirmed)
+            throw new IllegalStateException("Transfer already accepted");
+
+        if (payment.getExpiresAt() != null && LocalDateTime.now().isAfter(payment.getExpiresAt())) {
+            throw new IllegalStateException("Payment has expired. Cannot confirm transfer.");
+        }
 
         if (payment.getPaymentDetails() == null) payment.setPaymentDetails(new PaymentDetails());
+
         payment.getPaymentDetails().setConfirmation(true);
         payment.getPaymentDetails().setConfirmedAt(LocalDateTime.now());
+        
+        // Set status ke PENDING
         payment.setPaymentStatus(PaymentStatus.PENDING);
+        System.out.println("Setting status to PENDING");
 
         payment.preUpdate();
-        return paymentRepository.save(payment);
+        Payment savedPayment = paymentRepository.saveAndFlush(payment);
+        return savedPayment;
     }
 }

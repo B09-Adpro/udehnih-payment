@@ -91,7 +91,7 @@ public class RefundServiceImpl implements RefundService {
         
         RefundStatus oldStatus = refund.getRefundStatus();
         refund.setRefundStatus(status);
-        refund.preUpdate(); // Update timestamp
+        refund.preUpdate();
         
         Refund updatedRefund = refundRepository.save(refund);
         

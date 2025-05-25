@@ -57,7 +57,9 @@ public class PaymentControllerTest {
     private Long transactionId;
     private Long courseId;
     private Long userId;
-    private Payment payment;    @BeforeEach
+    private Payment payment;    
+    
+    @BeforeEach
     public void setUp() {
         transactionId = 1001L;
         courseId = 123L;

@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "transaction_id")
     private Long transactionId;
 
     @Column(name = "course_id", nullable = false)
@@ -27,6 +28,12 @@ public class Payment {
 
     @Column(nullable = false)
     private Long enrollmentId;
+
+    @Column(name = "course_title", nullable = false)
+    private String courseTitle;
+
+    @Column(name = "tutor_name", nullable = false)
+    private String tutorName;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

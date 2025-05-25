@@ -12,6 +12,8 @@ public class PaymentDetailDTO {
     private Long transactionId;
     private Long courseId;
     private Long userId;
+    private String courseTitle;
+    private String tutorName;
     private BigDecimal amount;
     private String paymentStatus;
     private String paymentMethod;

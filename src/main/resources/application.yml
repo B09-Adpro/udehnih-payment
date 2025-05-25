@@ -29,8 +29,8 @@ services:
     
   course:
     baseurl: ${COURSE_SERVICE_URL_LOCAL}
-    api-key: ${COURSE_SERVICE_API_KEY:}
+    api-key: ${COURSE_SERVICE_API_KEY}
     
   dashboard:
     baseurl: ${DASHBOARD_SERVICE_URL_LOCAL}
-    api-key: ${DASHBOARD_SERVICE_API_KEY:test-api-key}
+    api-key: ${DASHBOARD_SERVICE_API_KEY}

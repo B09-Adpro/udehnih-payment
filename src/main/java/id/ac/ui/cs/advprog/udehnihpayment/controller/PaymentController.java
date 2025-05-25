@@ -5,7 +5,10 @@ import id.ac.ui.cs.advprog.udehnihpayment.dto.response.PaymentDetailDTO;
 import id.ac.ui.cs.advprog.udehnihpayment.dto.response.RefundResponseDTO;
 import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentMethod;
 import id.ac.ui.cs.advprog.udehnihpayment.enums.RefundStatus;
+import id.ac.ui.cs.advprog.udehnihpayment.dto.request.CreditCardRequestDTO;
 import id.ac.ui.cs.advprog.udehnihpayment.dto.request.PaymentRequestDTO;
+import id.ac.ui.cs.advprog.udehnihpayment.dto.request.RefundRequestDTO;
+import id.ac.ui.cs.advprog.udehnihpayment.strategy.CreditCardStrategy;
 import id.ac.ui.cs.advprog.udehnihpayment.exception.InvalidRefundReasonException;
 import id.ac.ui.cs.advprog.udehnihpayment.exception.RefundAlreadyRequestedException;
 import id.ac.ui.cs.advprog.udehnihpayment.exception.RefundTooLateException;
@@ -19,6 +22,7 @@ import id.ac.ui.cs.advprog.udehnihpayment.security.AppUserDetails;
 import id.ac.ui.cs.advprog.udehnihpayment.service.PaymentService;
 import id.ac.ui.cs.advprog.udehnihpayment.service.RefundService;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -71,7 +75,7 @@ public class PaymentController {
     @PostMapping
     public ResponseEntity<Map<String, Object>> createPayment(
             @RequestBody PaymentRequestDTO request,
-            @RequestHeader (value = "x-api-key", required=true) String CourseApiKey) {
+            @RequestHeader (value = "X-API-Key", required=true) String CourseApiKey) {
 
         // Validate API key
         if (!validateCourseApiKey(CourseApiKey)) {
@@ -89,6 +93,8 @@ public class PaymentController {
         response.put("transactionId", responseDTO.getTransactionId());
         response.put("courseId", responseDTO.getCourseId());
         response.put("userId", responseDTO.getUserId());
+        response.put("courseTitle", responseDTO.getCourseTitle());
+        response.put("tutorName", responseDTO.getTutorName());
         response.put("amount", responseDTO.getAmount());
         response.put("paymentStatus", responseDTO.getPaymentStatus());
         response.put("paymentMethod", responseDTO.getPaymentMethod());
@@ -170,27 +176,44 @@ public class PaymentController {
         }
     }
 
+    @Autowired
+    private CreditCardStrategy creditCardStrategy;
     @PostMapping("/{transactionId}/credit-card")
-    public ResponseEntity<PaymentResponseDTO> processCreditCardPayment(@PathVariable("transactionId") Long transactionId) {
+    public ResponseEntity<?> processCreditCardPayment(
+            @PathVariable("transactionId") Long transactionId,
+            @RequestBody CreditCardRequestDTO request) {
         try {
+            // Validasi input credit card
+            if (!creditCardStrategy.validateCardDetails(request.getCardNumber(), request.getCvc())) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Nomor kartu kredit harus 16 digit dan CVC harus 3 digit angka"
+                ));
+            }
+            if (!creditCardStrategy.validateExpiryDate(request.getExpiryDate())) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Format expiry date harus MM/YY"
+                ));
+            }
+
             Payment processedPayment = paymentService.processPayment(
                     transactionId,
                     PaymentMethod.CREDIT_CARD.getValue());
             return ResponseEntity.ok(paymentMapper.toResponseDto(processedPayment));
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         } catch (IllegalStateException e) {
-            throw new IllegalStateException(e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
-            throw new RuntimeException("Error processing payment: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false, "message", "Error processing payment: " + e.getMessage()));
         }
     }
 
     @PostMapping("/{transactionId}/refund")
     public ResponseEntity<RefundResponseDTO> requestRefund(
             @PathVariable("transactionId") Long transactionId,
-            @RequestParam String reason,
-            @RequestParam(required = false) String details,
+            @RequestBody RefundRequestDTO refundRequest,
             @AuthenticationPrincipal AppUserDetails userDetails) {
 
         // Error 401 - Unauthorized (Invalid token)
@@ -203,12 +226,11 @@ public class PaymentController {
                 throw new TransactionNotFoundException("Payment not found for transactionId: " + transactionId);
             }
 
-            // Validate the user is requesting refund for their own payment
             if (isAuthenticated && !payment.getUserId().equals(userDetails.getId())) {
                 throw new UnauthorizedRefundException("You are not authorized to request a refund for this transaction");
             }
 
-            Refund refund = refundService.requestRefund(transactionId, reason, details);
+            Refund refund = refundService.requestRefund(transactionId, refundRequest.getReason(), refundRequest.getDetails());
             return ResponseEntity.ok(refundMapper.toResponseDto(refund));
 
         } catch (TransactionNotFoundException e) {
@@ -318,9 +340,9 @@ public class PaymentController {
     }
 
     @GetMapping("/transactions")
-    public ResponseEntity<?> getAllPayments(
+    public ResponseEntity<Map<String, Object>> getAllPayments(
             @RequestHeader(value = "X-API-Key", required = true) String apiKey) {
-        
+
         // Validate API key
         if (!validateDashboardApiKey(apiKey)) {
             Map<String, Object> errorResponse = new HashMap<>();
@@ -328,16 +350,20 @@ public class PaymentController {
             errorResponse.put("message", "Unauthorized access");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
         }
-        
+
         List<Payment> payments = paymentService.getAllPayments();
         List<PaymentResponseDTO> dtos = payments.stream()
                 .map(paymentMapper::toResponseDto)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("transactions", dtos);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/refunds")
-    public ResponseEntity<?> getAllRefunds(
+    public ResponseEntity<Map<String, Object>> getAllRefunds(
             @RequestHeader(value = "X-API-Key", required = true) String apiKey) {
         
         // Validate API key
@@ -352,7 +378,11 @@ public class PaymentController {
         List<RefundResponseDTO> dtos = refunds.stream()
                 .map(refundMapper::toResponseDto)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("refunds", dtos);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/refunds/{refundId}")

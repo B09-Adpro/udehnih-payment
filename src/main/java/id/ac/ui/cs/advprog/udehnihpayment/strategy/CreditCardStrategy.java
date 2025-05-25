@@ -30,11 +30,22 @@ public class CreditCardStrategy implements PaymentStrategy {
         instructions.append("Total pembayaran: Rp").append(payment.getAmount());
         return instructions.toString();
     }
+
+    public boolean validateCardDetails(String cardNumber, String cvc) {
+        // Validasi nomor kartu: 16 digit angka
+        boolean validCardNumber = cardNumber != null && cardNumber.matches("\\d{16}");
+        // Validasi CVC: 3 digit angka
+        boolean validCvc = cvc != null && cvc.matches("\\d{3}");
+        return validCardNumber && validCvc;
+    }
+
+    public boolean validateExpiryDate(String expiryDate) {
+        // Format MM/YY, MM antara 01-12
+        return expiryDate != null && expiryDate.matches("^(0[1-9]|1[0-2])/\\d{2}$");
+    }
     
     @Override
     public boolean validatePayment(Payment payment) {
-        // Validasi pembayaran kartu kredit
-        // Minimal harus memiliki payment, amount > 0, dan courseId
         return payment != null && 
                payment.getAmount().compareTo(BigDecimal.ZERO) > 0 &&
                payment.getCourseId() != null;

@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.udehnihpayment.enums;
 
 public enum PaymentStatus {
+    WAITING_PAYMENT("WAITING_PAYMENT"),
     PENDING("PENDING"),
     PAID("PAID"),
     FAILED("FAILED");

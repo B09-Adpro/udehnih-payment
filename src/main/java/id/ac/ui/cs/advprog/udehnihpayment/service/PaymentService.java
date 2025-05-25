@@ -13,4 +13,5 @@ public interface PaymentService {
     Payment processPayment(Long transactionId, String paymentMethod);
     Payment findByTransactionId(Long transactionId);
     Payment updatePaymentStatus(Long transactionId, PaymentDetailDTO.Details updateRequest);
+    Payment confirmBankTransfer(Long transactionId, Long userId);
 }

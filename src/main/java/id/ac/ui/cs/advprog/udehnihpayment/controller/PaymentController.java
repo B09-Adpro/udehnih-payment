@@ -71,7 +71,7 @@ public class PaymentController {
     @PostMapping
     public ResponseEntity<Map<String, Object>> createPayment(
             @RequestBody PaymentRequestDTO request,
-            @RequestHeader (value = "X-API-Key", required=true) String CourseApiKey) {
+            @RequestHeader (value = "x-api-key", required=true) String CourseApiKey) {
 
         // Validate API key
         if (!validateCourseApiKey(CourseApiKey)) {
@@ -374,6 +374,14 @@ public class PaymentController {
         } catch (Exception e) {
             throw new RuntimeException("Error retrieving refund details: " + e.getMessage());
         }
+    }
+
+    @PostMapping("/{transactionId}/confirm-transfer")
+    public ResponseEntity<PaymentResponseDTO> confirmBankTransfer(
+            @PathVariable("transactionId") Long transactionId,
+            @AuthenticationPrincipal AppUserDetails userDetails) {
+        Payment payment = paymentService.confirmBankTransfer(transactionId, userDetails.getId());
+        return ResponseEntity.ok(paymentMapper.toResponseDto(payment));
     }
 
     public boolean isAuthenticated(AppUserDetails userDetails) {

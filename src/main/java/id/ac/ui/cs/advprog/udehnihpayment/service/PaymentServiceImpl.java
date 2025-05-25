@@ -6,9 +6,11 @@ import id.ac.ui.cs.advprog.udehnihpayment.dto.response.PaymentDetailDTO;
 import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentMethod;
 import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentStatus;
 import id.ac.ui.cs.advprog.udehnihpayment.exception.TransactionNotFoundException;
+import id.ac.ui.cs.advprog.udehnihpayment.exception.UnauthorizedAccessException;
 import id.ac.ui.cs.advprog.udehnihpayment.model.Payment;
 import id.ac.ui.cs.advprog.udehnihpayment.model.PaymentDetails;
 import id.ac.ui.cs.advprog.udehnihpayment.repository.PaymentRepository;
+import id.ac.ui.cs.advprog.udehnihpayment.strategy.PaymentStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -38,6 +40,23 @@ public class PaymentServiceImpl implements PaymentService {
     @Value("${services.dashboard.api-key}")
     private String dashboardApiKey;
 
+    private final List<PaymentStrategy> paymentStrategies;
+
+    public PaymentServiceImpl(
+            PaymentRepository paymentRepository,
+            CourseServiceClient courseServiceClient,
+            DashboardServiceClient dashboardServiceClient,
+            @Value("${services.course.api-key}") String courseApiKey,
+            @Value("${services.dashboard.api-key}") String dashboardApiKey,
+            List<PaymentStrategy> paymentStrategies) {
+        this.paymentRepository = paymentRepository;
+        this.courseServiceClient = courseServiceClient;
+        this.dashboardServiceClient = dashboardServiceClient;
+        this.courseApiKey = courseApiKey;
+        this.dashboardApiKey = dashboardApiKey;
+        this.paymentStrategies = paymentStrategies;
+    }
+
     @Override
     public Payment createPayment(Payment payment) {
         if (payment.getPaymentStatus() == null) {
@@ -49,20 +68,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         Payment saved = paymentRepository.save(payment);
 
-        PaymentStrategy strategy;
-        PaymentMethod method = saved.getPaymentMethod();
-
-        switch (method) {
-            case BANK_TRANSFER:
-                strategy = new BankTransferPaymentStrategy();
-                break;
-            case CREDIT_CARD:
-                strategy = new CreditCardPaymentStrategy();
-                break;
-            default:
-                throw new IllegalArgumentException("Metode pembayaran tidak dikenal: " + saved.getPaymentMethod());
-        }
-
+        PaymentStrategy strategy = findStrategy(saved.getPaymentMethod());
         String instructions = strategy.generateInstructions(saved);
         System.out.println("Payment Instructions: " + instructions);
 
@@ -99,23 +105,18 @@ public class PaymentServiceImpl implements PaymentService {
                 payment.getPaymentMethod() + ", Received: " + paymentMethod);
         }
 
-        PaymentStrategy strategy;
-
-        switch (method) {
-            case BANK_TRANSFER:
-                strategy = new BankTransferPaymentStrategy();
-                break;
-            case CREDIT_CARD:
-                strategy = new CreditCardPaymentStrategy();
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported payment method: " + method);
-        }
-
-        String result = processPaymentWithStrategy(payment, strategy);
+        PaymentStrategy strategy = findStrategy(method);
+        String result = strategy.processPayment(payment);
         System.out.println("Payment processing result: " + result);
 
         return payment;
+    }
+
+    private PaymentStrategy findStrategy(PaymentMethod method) {
+        return paymentStrategies.stream()
+                .filter(s -> s.supports(method.getValue()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("No strategy found for method: " + method));
     }
 
     @Override
@@ -143,7 +144,6 @@ public class PaymentServiceImpl implements PaymentService {
 
         boolean wasApproved = payment.getPaymentDetails() != null && payment.getPaymentDetails().isAdminApproval();
         
-        // Set semua properti dari DTO ke entitas
         PaymentDetails details = payment.getPaymentDetails();
         
         details.setConfirmation(updateRequest.isConfirmation());
@@ -215,32 +215,24 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
-    private String processPaymentWithStrategy(Payment payment, PaymentStrategy strategy) {
-        return strategy.processPayment(payment);
-    }
+    @Override
+    public Payment confirmBankTransfer(Long transactionId, Long userId) {
+        Payment payment = findByTransactionId(transactionId);
+        if (payment == null) throw new TransactionNotFoundException("Payment not found");
+        if (!payment.getUserId().equals(userId)) throw new UnauthorizedAccessException("Not your payment");
+        if (payment.getPaymentMethod() != PaymentMethod.BANK_TRANSFER)
+            throw new IllegalArgumentException("Confirmation only for bank transfer payments");
+        if (payment.getPaymentStatus() != PaymentStatus.PENDING)
+            throw new IllegalStateException("Payment is not in PENDING state");
+        if (payment.getPaymentDetails() != null && payment.getPaymentDetails().isConfirmation())
+            throw new IllegalStateException("Transfer already confirmed");
 
-    // -- Strategy Pattern Implementation --
-    private interface PaymentStrategy {
-        String generateInstructions(Payment payment);
+        if (payment.getPaymentDetails() == null) payment.setPaymentDetails(new PaymentDetails());
+        payment.getPaymentDetails().setConfirmation(true);
+        payment.getPaymentDetails().setConfirmedAt(LocalDateTime.now());
+        payment.setPaymentStatus(PaymentStatus.PENDING);
 
-        default String processPayment(Payment payment) {
-            return "Payment for course ID " + payment.getCourseId() +
-                   " with amount " + payment.getAmount() + 
-                   " processed successfully.";
-        }
-    }
-
-    private class BankTransferPaymentStrategy implements PaymentStrategy {
-        @Override
-        public String generateInstructions(Payment payment) {
-            return "Silakan transfer ke rekening BCA 123-456-7890 a.n Udehnih dengan nominal Rp" + payment.getAmount();
-        }
-    }
-
-    private class CreditCardPaymentStrategy implements PaymentStrategy {
-        @Override
-        public String generateInstructions(Payment payment) {
-            return "Silakan masukkan detail kartu kredit Anda di halaman pembayaran. Total tagihan: Rp" + payment.getAmount();
-        }
+        payment.preUpdate();
+        return paymentRepository.save(payment);
     }
 }

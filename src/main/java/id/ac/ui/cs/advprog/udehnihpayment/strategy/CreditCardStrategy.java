@@ -1,6 +1,5 @@
 package id.ac.ui.cs.advprog.udehnihpayment.strategy;
 
-import id.ac.ui.cs.advprog.udehnihpayment.enums.Bank;
 import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentMethod;
 import id.ac.ui.cs.advprog.udehnihpayment.model.Payment;
 import org.springframework.stereotype.Component;
@@ -8,32 +7,34 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 
 /**
- * Strategi untuk memproses pembayaran dengan metode Transfer Bank
+ * Strategi untuk memproses pembayaran dengan metode Kartu Kredit
  */
 @Component
-public class BankTransferStrategy implements PaymentStrategy {    
+public class CreditCardStrategy implements PaymentStrategy {    
     @Override
     public String processPayment(Payment payment) {
-        // Implementasi proses pembayaran bank transfer
-        return "Bank Transfer payment for course ID " + payment.getCourseId() +
+        // Implementasi proses pembayaran kartu kredit
+        return "Credit Card payment for course ID " + payment.getCourseId() +
                 " with amount " + payment.getAmount() + 
                 " processed successfully.";
     }
-      @Override
+    
+    @Override
     public String generateInstructions(Payment payment) {
-        StringBuilder instructions = new StringBuilder("Silakan transfer ke salah satu rekening berikut:\n");
-        for (Bank bank : Bank.values()) {
-            instructions.append(String.format("- %s: %s a.n %s\n", 
-                bank.getBankName(), bank.getAccountNumber(), bank.getAccountName()));
-        }
-        instructions.append("\nSetelah melakukan transfer, harap lakukan konfirmasi 'Saya sudah transfer'.\n");
+        StringBuilder instructions = new StringBuilder();
+        instructions.append("Untuk menyelesaikan pembayaran dengan Kartu Kredit:\n");
+        instructions.append("1. Masukkan nomor kartu kredit (16 digit)\n");
+        instructions.append("2. Masukkan nama pemilik kartu\n");
+        instructions.append("3. Masukkan tanggal kadaluarsa (MM/YY)\n");
+        instructions.append("4. Masukkan Card Verification Code (CVC)\n\n");
         instructions.append("Total pembayaran: Rp").append(payment.getAmount());
         return instructions.toString();
     }
     
     @Override
     public boolean validatePayment(Payment payment) {
-        // Validasi pembayaran bank transfer
+        // Validasi pembayaran kartu kredit
+        // Minimal harus memiliki payment, amount > 0, dan courseId
         return payment != null && 
                payment.getAmount().compareTo(BigDecimal.ZERO) > 0 &&
                payment.getCourseId() != null;
@@ -41,6 +42,6 @@ public class BankTransferStrategy implements PaymentStrategy {
     
     @Override
     public boolean supports(String paymentMethodName) {
-        return PaymentMethod.BANK_TRANSFER.getValue().equals(paymentMethodName);
+        return PaymentMethod.CREDIT_CARD.getValue().equals(paymentMethodName);
     }
 }

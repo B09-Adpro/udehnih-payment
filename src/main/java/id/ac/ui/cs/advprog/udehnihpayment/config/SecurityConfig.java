@@ -13,11 +13,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasRole;
-import static org.springframework.security.authorization.AuthorizationManagers.not;
-import static org.springframework.security.authorization.AuthorizationManagers.allOf;
-
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -32,26 +27,35 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers(HttpMethod.POST, "/api/payments")
-                        .access(allOf(
-                                        hasRole("STUDENT"),
-                                        not(hasRole("TUTOR"))
-                                ))
-                        .requestMatchers(HttpMethod.GET, "/api/payments/methods").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/payments/{transactionId}/bank-transfer").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/payments/{transactionId}/credit-card").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/payments/history").hasRole("STAFF")
-                        .requestMatchers(HttpMethod.GET, "/api/payments/{transactionId}").hasRole("STAFF")
-                        .requestMatchers(HttpMethod.POST, "/api/payments/{transactionId}/refund").access(allOf(
-                                        hasRole("STUDENT"),
-                                        not(hasRole("TUTOR"))
-                                ))
-                        .requestMatchers(HttpMethod.PUT, "/api/payments/{transactionId}/status").hasRole("STAFF")
-                        .requestMatchers(HttpMethod.PUT, "/api/payments/{refundId}/status}").hasRole("STAFF")
+                        
+                        // ========== ENDPOINTS DENGAN API KEY VALIDATION (permitAll) ==========
+                        // Course Service API - Create Payment
+                        .requestMatchers(HttpMethod.POST, "/api/payments").permitAll()
+                        
+                        // Dashboard Service API - Get all data
+                        .requestMatchers(HttpMethod.GET, "/api/payments/transactions").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/payments/refunds").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/payments/refunds/*").permitAll()
+                        
+                        // Dashboard Service API - Update status
+                        .requestMatchers(HttpMethod.PUT, "/api/payments/*/status").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/payments/refunds/*/status").permitAll()
+                        
+                        // Mixed Authentication - API Key OR JWT
+                        .requestMatchers(HttpMethod.GET, "/api/payments/*").permitAll()
+                        
+                        // ========== PUBLIC ENDPOINTS (No Authentication) ==========
+                        .requestMatchers(HttpMethod.GET, "/api/payments/methods").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/payments/process").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/payments/transactions").hasRole("STAFF")
-                        .requestMatchers(HttpMethod.GET, "/api/payments/refunds").hasRole("STAFF")
-                        .requestMatchers(HttpMethod.GET, "/api/payments/refunds/{refundId}").hasRole("STAFF")
+                        
+                        // ========== JWT AUTHENTICATION REQUIRED ==========
+                        // Student endpoints
+                        .requestMatchers(HttpMethod.GET, "/api/payments/history").hasRole("STUDENT")
+                        .requestMatchers(HttpMethod.POST, "/api/payments/*/bank-transfer").hasRole("STUDENT")
+                        .requestMatchers(HttpMethod.POST, "/api/payments/*/credit-card").hasRole("STUDENT")
+                        .requestMatchers(HttpMethod.POST, "/api/payments/*/refund").hasRole("STUDENT")
+                        
+                        // ========== FALLBACK ==========
                         .anyRequest().authenticated()
                 );
         

@@ -10,18 +10,22 @@ import id.ac.ui.cs.advprog.udehnihpayment.model.*;
 import id.ac.ui.cs.advprog.udehnihpayment.security.AppUserDetails;
 import id.ac.ui.cs.advprog.udehnihpayment.service.*;
 import id.ac.ui.cs.advprog.udehnihpayment.config.TestSecurityConfig;
+import id.ac.ui.cs.advprog.udehnihpayment.strategy.CreditCardStrategy;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.context.annotation.Bean;
+import org.springframework.boot.test.context.TestConfiguration;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -38,21 +42,44 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 
 @WebMvcTest(PaymentController.class)
-@Import(TestSecurityConfig.class)
+@Import({TestSecurityConfig.class, PaymentControllerTest.MockConfig.class})
 @TestPropertySource(locations = "classpath:application-test.properties")
 public class PaymentControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Autowired
     private PaymentService paymentService;
-
-    @MockBean
-    private RefundService refundService;    @MockBean
+    @Autowired
+    private RefundService refundService;
+    @Autowired
     private PaymentMapper paymentMapper;
-
-    @MockBean
+    @Autowired
     private RefundMapper refundMapper;
+
+    @TestConfiguration
+    static class MockConfig {
+        @Bean
+        public PaymentService paymentService() {
+            return org.mockito.Mockito.mock(PaymentService.class);
+        }
+        @Bean
+        public RefundService refundService() {
+            return org.mockito.Mockito.mock(RefundService.class);
+        }
+        @Bean
+        public PaymentMapper paymentMapper() {
+            return org.mockito.Mockito.mock(PaymentMapper.class);
+        }
+        @Bean
+        public RefundMapper refundMapper() {
+            return org.mockito.Mockito.mock(RefundMapper.class);
+        }
+        @Bean
+        public CreditCardStrategy creditCardStrategy() {
+            return org.mockito.Mockito.mock(CreditCardStrategy.class);
+        }
+    }
 
     private Long transactionId;
     private Long courseId;
@@ -61,6 +88,7 @@ public class PaymentControllerTest {
     
     @BeforeEach
     public void setUp() {
+        MockitoAnnotations.openMocks(this);
         transactionId = 1001L;
         courseId = 123L;
         userId = 456L;
@@ -128,14 +156,9 @@ public class PaymentControllerTest {
 
         @Test
         public void testProcessPayment_Success() throws Exception {
-        // Setup
         String paymentMethod = "Bank Transfer";
-        
-        // Prepare request JSON
-        String requestJson = "{\"studentId\":" + userId + ",\"courseId\":" + courseId + 
-                ",\"amount\":50000,\"paymentMethod\":\"" + paymentMethod + "\"}";
-        
-        // Create the payment that will be returned by createPayment
+        String requestJson = "{\"studentId\":" + userId + ",\"courseId\":" + courseId + ",\"amount\":50000,\"paymentMethod\":\"" + paymentMethod + "\"}";
+
         Payment savedPayment = Payment.builder()
                 .transactionId(transactionId)
                 .courseId(courseId)
@@ -145,39 +168,28 @@ public class PaymentControllerTest {
                 .amount(new BigDecimal("50000"))
                 .build();
 
-        // Create the payment that will be returned by processPayment
-        Payment processedPayment = Payment.builder()
-                .transactionId(transactionId)
-                .courseId(courseId)
-                .userId(userId)
-                .paymentMethod(PaymentMethod.BANK_TRANSFER)
-                .paymentStatus(PaymentStatus.PENDING)
-                .amount(new BigDecimal("50000"))
-                .build();
-
-        // Mock payment creation and processing
         when(paymentMapper.toEntity(any(PaymentRequestDTO.class))).thenReturn(savedPayment);
         when(paymentService.createPayment(any(Payment.class))).thenReturn(savedPayment);
-        when(paymentService.processPayment(eq(transactionId), eq(paymentMethod))).thenReturn(processedPayment);
-        
-        // Execute & Verify
+        when(paymentService.processPayment(eq(transactionId), eq(paymentMethod))).thenReturn(savedPayment);
+
         mockMvc.perform(post("/api/payments/process")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.transactionId").exists())
+                .andExpect(jsonPath("$.transactionId").value(transactionId))
                 .andExpect(jsonPath("$.paymentStatus").value("PENDING"));
-        }
+    }
 
     @Test
-    public void testProcessPayment_InvalidMethod() throws Exception {
-        // Setup
-        String paymentMethod = "InvalidMethod";
-        mockMvc.perform(post("/api/payments/process", transactionId)
-                .param("paymentMethod", paymentMethod)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+    public void testProcessPayment_MissingFields() throws Exception {
+        String requestJson = "{\"studentId\":null,\"courseId\":null,\"amount\":null,\"paymentMethod\":null}";
+        mockMvc.perform(post("/api/payments/process")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Missing required fields"));
     }
 
     @Test
@@ -191,33 +203,29 @@ public class PaymentControllerTest {
                 .paymentStatus("PENDING")
                 .paymentMethod("BANK_TRANSFER")
                 .build();
-                
         when(paymentMapper.toDetailDto(payment)).thenReturn(detailDTO);
-        
         mockMvc.perform(get("/api/payments/{transactionId}", transactionId)
                 .header("X-API-Key", "test-dashboard-api-key")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.transactionId").value(transactionId.toString()))
-                .andExpect(jsonPath("$.userId").value(userId.toString()))
+                .andExpect(jsonPath("$.transactionId").value(transactionId))
+                .andExpect(jsonPath("$.userId").value(userId))
                 .andExpect(jsonPath("$.paymentStatus").value("PENDING"));
     }
 
     @Test
     public void testGetTransactionDetails_Unauthorized() throws Exception {
         when(paymentService.findByTransactionId(eq(transactionId))).thenReturn(payment);
-
         mockMvc.perform(get("/api/payments/{transactionId}", transactionId)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.status").value("error"))
                 .andExpect(jsonPath("$.message").value("Authentication required"));
     }
-    
+
     @Test
     public void testGetTransactionDetails_NotFound() throws Exception {
         when(paymentService.findByTransactionId(eq(transactionId))).thenReturn(null);
-        
         mockMvc.perform(get("/api/payments/{transactionId}", transactionId)
                 .header("X-API-Key", "test-dashboard-api-key")
                 .contentType(MediaType.APPLICATION_JSON))
@@ -227,9 +235,7 @@ public class PaymentControllerTest {
 
     @Test
     public void testCreatePayment_Success() throws Exception {
-        String requestJson = "{\"courseId\":\"" + courseId + "\",\"paymentMethod\":\"BANK_TRANSFER\"}";
-
-        // Mock Payment entity
+        String requestJson = "{\"courseId\":" + courseId + ",\"paymentMethod\":\"BANK_TRANSFER\"}";
         Payment newPayment = Payment.builder()
                 .transactionId(4001L)
                 .courseId(courseId)
@@ -238,8 +244,6 @@ public class PaymentControllerTest {
                 .paymentStatus(PaymentStatus.PENDING)
                 .amount(new BigDecimal("50000"))
                 .build();
-
-        // Mock PaymentResponseDTO
         PaymentResponseDTO responseDTO = PaymentResponseDTO.builder()
                 .transactionId(newPayment.getTransactionId())
                 .courseId(courseId)
@@ -250,10 +254,10 @@ public class PaymentControllerTest {
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
-
         lenient().when(paymentMapper.toEntity(any(PaymentRequestDTO.class))).thenReturn(newPayment);
         lenient().when(paymentService.createPayment(any(Payment.class))).thenReturn(newPayment);
-        lenient().when(paymentMapper.toResponseDto(any(Payment.class))).thenReturn(responseDTO);        mockMvc.perform(post("/api/payments")
+        lenient().when(paymentMapper.toResponseDto(any(Payment.class))).thenReturn(responseDTO);
+        mockMvc.perform(post("/api/payments")
                 .header("X-API-Key", "test-courses-api-key")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson))
@@ -263,8 +267,7 @@ public class PaymentControllerTest {
 
     @Test
     public void testCreatePayment_UnauthorizedAccess() throws Exception {
-        String requestJson = "{\"courseId\":\"" + courseId + "\",\"paymentMethod\":\"BANK_TRANSFER\"}";
-
+        String requestJson = "{\"courseId\":" + courseId + ",\"paymentMethod\":\"BANK_TRANSFER\"}";
         mockMvc.perform(post("/api/payments")
                 .header("X-API-Key", "invalid-api-key")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -276,48 +279,38 @@ public class PaymentControllerTest {
 
     @Test
     public void testRequestRefund_Success() throws Exception {
-        // Setup mock objects with proper data
         Refund refund = Refund.builder()
                 .id(3001L)
                 .payment(payment)
                 .reason("Course not as expected")
                 .details("Content too basic")
                 .build();
-        
         RefundResponseDTO refundResponseDTO = RefundResponseDTO.builder()
                 .refundId(refund.getId())
                 .status("PENDING")
                 .message("Refund request has been submitted successfully.")
                 .note("Your refund request is being processed by admin.")
                 .build();
-        
-        // Mock service calls
         when(paymentService.findByTransactionId(eq(transactionId))).thenReturn(payment);
         when(refundService.requestRefund(eq(transactionId), eq("Course not as expected"), eq("Content too basic")))
                 .thenReturn(refund);
         when(refundMapper.toResponseDto(refund)).thenReturn(refundResponseDTO);
-        
-        // Create authenticated user with correct userId that matches the payment
         AppUserDetails authenticatedUser = new AppUserDetails(
-                userId, // This must match payment.getUserId()
-                "test@example.com", 
+                userId,
+                "test@example.com",
                 List.of(new SimpleGrantedAuthority("ROLE_STUDENT"))
         );
-        
-        // Create authentication token
-        UsernamePasswordAuthenticationToken authToken = 
+        UsernamePasswordAuthenticationToken authToken =
                 new UsernamePasswordAuthenticationToken(
-                        authenticatedUser, 
-                        null, 
+                        authenticatedUser,
+                        null,
                         authenticatedUser.getAuthorities()
                 );
-        
-        // Execute the request with proper authentication
+        String requestJson = "{\"reason\":\"Course not as expected\",\"details\":\"Content too basic\"}";
         mockMvc.perform(post("/api/payments/{transactionId}/refund", transactionId)
                 .with(authentication(authToken))
-                .param("reason", "Course not as expected")
-                .param("details", "Content too basic")
-                .contentType(MediaType.APPLICATION_JSON))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.refundId").value(3001L))
                 .andExpect(jsonPath("$.status").value("PENDING"))
@@ -326,16 +319,11 @@ public class PaymentControllerTest {
     
     @Test
     public void testGetTransactionHistory_Success() throws Exception {
-        // Mock user authentication
         AppUserDetails userDetails = mock(AppUserDetails.class);
-        
-        UsernamePasswordAuthenticationToken auth = 
-                new UsernamePasswordAuthenticationToken(userDetails, null, List.of());
-        
-        // Prepare test data
+        when(userDetails.getId()).thenReturn(userId);
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(userDetails, null, List.of());
         List<Payment> userPayments = new ArrayList<>();
         userPayments.add(payment);
-        
         List<PaymentResponseDTO> responseDTOs = new ArrayList<>();
         responseDTOs.add(PaymentResponseDTO.builder()
                 .transactionId(transactionId)
@@ -345,11 +333,8 @@ public class PaymentControllerTest {
                 .paymentStatus("PENDING")
                 .paymentMethod("BANK_TRANSFER")
                 .build());
-        
         lenient().when(paymentService.getAllPayments(userId)).thenReturn(userPayments);
-        lenient().when(paymentService.getAllPayments(any())).thenReturn(userPayments);
         when(paymentMapper.toResponseDto(payment)).thenReturn(responseDTOs.get(0));
-        
         mockMvc.perform(get("/api/payments/history")
                 .with(authentication(auth))
                 .contentType(MediaType.APPLICATION_JSON))
@@ -360,25 +345,22 @@ public class PaymentControllerTest {
     
     @Test
     public void testGetAllPayments_Success() throws Exception {
-        // Prepare test data
         List<Payment> allPayments = new ArrayList<>();
         allPayments.add(payment);
-        
         List<PaymentResponseDTO> responseDTOs = new ArrayList<>();
         responseDTOs.add(PaymentResponseDTO.builder()
                 .transactionId(transactionId)
                 .courseId(courseId)
                 .userId(userId)
                 .build());
-        
         when(paymentService.getAllPayments()).thenReturn(allPayments);
         when(paymentMapper.toResponseDto(payment)).thenReturn(responseDTOs.get(0));
-        
         mockMvc.perform(get("/api/payments/transactions")
                 .header("X-API-Key", "test-dashboard-api-key")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].transactionId").value(transactionId));
+                .andExpect(jsonPath("$.transactions").isArray())
+                .andExpect(jsonPath("$.transactions[0].transactionId").value(transactionId));
     }
     
     @Test

@@ -144,7 +144,7 @@ public class RefundServiceImpl implements RefundService {
         paymentData.put("studentId", payment.getUserId());
         paymentData.put("courseId", payment.getCourseId());
         
-        boolean isApproved = false; // Default untuk APPROVED status
+        boolean isApproved = false;
         String message;
         
         if (status == RefundStatus.APPROVED) {

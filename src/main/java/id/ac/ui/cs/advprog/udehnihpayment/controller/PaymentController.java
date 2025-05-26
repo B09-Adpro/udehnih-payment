@@ -90,6 +90,7 @@ public class PaymentController {
 
         PaymentResponseDTO responseDTO = paymentMapper.toResponseDto(result);
         Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
         response.put("transactionId", responseDTO.getTransactionId());
         response.put("courseId", responseDTO.getCourseId());
         response.put("userId", responseDTO.getUserId());
@@ -130,7 +131,6 @@ public class PaymentController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
         }
         
-        // Ambil data payment
         Payment payment = paymentService.findByTransactionId(transactionId);
         
         if (payment == null) {
@@ -312,14 +312,12 @@ public class PaymentController {
             Payment payment = paymentMapper.toEntity(paymentRequest);
             Payment savedPayment = paymentService.createPayment(payment);
             
-            // Proses payment menggunakan payment method yang sesuai
             try {
                 paymentService.processPayment(
                     savedPayment.getTransactionId(), 
                     paymentRequest.getPaymentMethod()
                 );
             } catch (Exception e) {
-                // Error handling tetapi payment tetap dibuat
                 System.err.println("Error processing payment: " + e.getMessage());
             }
             

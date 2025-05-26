@@ -18,7 +18,6 @@ public class PaymentDetailDTO {
     private BigDecimal amount;
     private String paymentStatus;
     private String paymentMethod;
-    private String bankName;
     private Details paymentDetails;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

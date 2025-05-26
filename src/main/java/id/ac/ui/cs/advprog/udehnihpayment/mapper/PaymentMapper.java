@@ -30,7 +30,6 @@ public class PaymentMapper {
                 .amount(payment.getAmount())
                 .paymentStatus(payment.getPaymentStatus().getValue())
                 .paymentMethod(payment.getPaymentMethod().getValue())
-                .bankName(getBankNameForPaymentMethod(payment.getPaymentMethod()))
                 .paymentDetails(detailsDto)
                 .createdAt(payment.getCreatedAt())
                 .updatedAt(payment.getUpdatedAt())
@@ -111,13 +110,5 @@ public class PaymentMapper {
         details.setApprovedBy(dto.getApprovedBy());
         
         return details;
-    }
-    
-    // Helper methods
-    private String getBankNameForPaymentMethod(PaymentMethod method) {
-        if (method == PaymentMethod.BANK_TRANSFER) {
-            return "Bank BCA";
-        }
-        return null;
     }
 }

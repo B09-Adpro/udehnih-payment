@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class PaymentRepositoryTest {
@@ -25,7 +26,7 @@ public class PaymentRepositoryTest {
     @Test
     public void testSaveAndFindByIdTransaksi() {
         Payment payment = Payment.builder()
-                .transactionId(789L)
+                .transactionId(UUID.fromString("6e51f16b-eba9-493f-9e97-fba59f421e48"))
                 .courseId(123L)
                 .userId(456L)
                 .amount(new BigDecimal("50000"))
@@ -34,7 +35,7 @@ public class PaymentRepositoryTest {
                 .build();
 
         when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
-        when(paymentRepository.findByTransactionId(789L)).thenReturn(payment);
+        when(paymentRepository.findByTransactionId(UUID.fromString("6e51f16b-eba9-493f-9e97-fba59f421e48"))).thenReturn(payment);
 
         Payment saved = paymentRepository.save(payment);
         Payment found = paymentRepository.findByTransactionId(saved.getTransactionId());
@@ -59,15 +60,15 @@ public class PaymentRepositoryTest {
 
     @Test
     public void testFindByIdTransaksi_NotFound() {
-        when(paymentRepository.findByTransactionId(any(Long.class))).thenReturn(null);
+        when(paymentRepository.findByTransactionId(any(UUID.class))).thenReturn(null);
 
-        Payment result = paymentRepository.findByTransactionId(999L);
+        Payment result = paymentRepository.findByTransactionId(UUID.fromString("6e51f16b-eba9-493f-9e97-fba59f421e48"));
         assertNull(result);
     }
 
     @Test
     public void testFindAndUpdatePayment() {
-        Long id = 789L;
+        UUID id = UUID.fromString("6e51f16b-eba9-493f-9e97-fba59f421e48");
         Long courseId = 123L;
         Long userId = 456L;
         Payment payment = Payment.builder()

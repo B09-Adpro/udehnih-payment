@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -50,7 +51,6 @@ public class PaymentServiceTest {
             null,
             null,
             "",
-            "",
             Arrays.asList(bankTransferStrategy, creditCardStrategy)
         );
     }
@@ -74,8 +74,7 @@ public class PaymentServiceTest {
         assertFalse(result.contains("Cash"));
     }    @Test
     public void processPayment_BankTransfer_HappyPath() {
-        // Arrange
-        Long transactionId = 789L;
+        UUID transactionId = UUID.fromString("6e51f16b-eba9-493f-9e97-fba59f421e48");
         Long courseId = 123L;
         Long userId = 456L;        Payment existingPayment = Payment.builder()
                 .transactionId(transactionId)
@@ -107,10 +106,10 @@ public class PaymentServiceTest {
     
     @Test
     public void processPayment_CreditCard_HappyPath() {
-        // Arrange
-        Long transactionId = 789L;
+        UUID transactionId = UUID.fromString("6e51f16b-eba9-493f-9e97-fba59f421e48");
         Long courseId = 123L;
-        Long userId = 456L;        Payment existingPayment = Payment.builder()
+        Long userId = 456L;        
+        Payment existingPayment = Payment.builder()
                 .transactionId(transactionId)
                 .courseId(courseId)
                 .userId(userId)
@@ -135,7 +134,7 @@ public class PaymentServiceTest {
     @Test
     public void processPayment_NotFound_ThrowsException() {
         // Arrange
-        Long transactionId = 789L;
+        UUID transactionId = UUID.fromString("6e51f16b-eba9-493f-9e97-fba59f421e48");
         when(paymentRepository.findByTransactionId(transactionId)).thenReturn(null);
         
         // Act & Assert
@@ -149,9 +148,10 @@ public class PaymentServiceTest {
     @Test
     public void processPayment_MethodMismatch_ThrowsException() {
         // Arrange
-        Long transactionId = 789L;
+        UUID transactionId = UUID.fromString("6e51f16b-eba9-493f-9e97-fba59f421e48");
         Long courseId = 123L;
-        Long userId = 456L;        Payment existingPayment = Payment.builder()
+        Long userId = 456L;        
+        Payment existingPayment = Payment.builder()
                 .transactionId(transactionId)
                 .courseId(courseId)
                 .userId(userId)

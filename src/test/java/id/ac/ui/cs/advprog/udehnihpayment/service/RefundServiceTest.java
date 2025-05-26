@@ -16,8 +16,10 @@ import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class RefundServiceTest {
@@ -41,7 +43,7 @@ public class RefundServiceTest {
 
     private Payment createTestPayment() {
         return Payment.builder()
-                .transactionId(1L)
+                .transactionId(UUID.fromString("6e51f16b-eba9-493f-9e97-fba59f421e48"))
                 .userId(456L)
                 .courseId(123L)
                 .amount(new BigDecimal("50000"))
@@ -70,7 +72,7 @@ public class RefundServiceTest {
 
     @Test
     public void testRequestRefund_TransactionNotFound() {
-        Long fakeId = 999L;
+        UUID fakeId = UUID.fromString("6e51f16b-eba9-493f-9e97-fba59f421e48");
         when(paymentRepository.findByTransactionId(fakeId)).thenReturn(null);
 
         assertThrows(RuntimeException.class, () -> {
@@ -80,7 +82,7 @@ public class RefundServiceTest {
 
     @Test
     public void testRequestRefund_EmptyReason() {
-        Long id = 2L;
+        UUID id = UUID.fromString("6e51f16b-eba9-493f-9e97-fba59f421e48");
         Long userId = 456L;
         Payment payment = Payment.builder()
                 .transactionId(id)

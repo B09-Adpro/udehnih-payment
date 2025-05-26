@@ -4,10 +4,11 @@ import id.ac.ui.cs.advprog.udehnihpayment.enums.RefundStatus;
 import id.ac.ui.cs.advprog.udehnihpayment.model.Refund;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface RefundService {
-    Refund requestRefund(Long transactionId, String reason, String details);
+    Refund requestRefund(UUID transactionId, String reason, String details);
     List<Refund> getAllRefunds();
-    Refund updateRefundStatus(Long refundId, RefundStatus status, String approvedBy);
-    Refund findById(Long refundId);
+    Refund updateRefundStatus(UUID refundId, RefundStatus status, String approvedBy);
+    Refund findById(UUID refundId);
 }

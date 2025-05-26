@@ -7,6 +7,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "payments")
@@ -16,9 +17,9 @@ import java.time.LocalDateTime;
 @Builder(toBuilder = true)
 public class Payment {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "transaction_id")
-    private Long transactionId;
+    private UUID transactionId;
 
     @Column(name = "course_id", nullable = false)
     private Long courseId;

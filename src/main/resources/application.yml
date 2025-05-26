@@ -34,3 +34,9 @@ services:
   dashboard:
     baseurl: ${DASHBOARD_SERVICE_URL_LOCAL}
     api-key: ${DASHBOARD_SERVICE_API_KEY}
+
+cors:
+  allowed-origins: ${ALLOWED_ORIGINS}
+  allowed-methods: ${ALLOWED_METHODS}
+  allowed-headers: ${ALLOWED_HEADERS}
+  allow-credentials: ${ALLOWED_CREDENTIALS}

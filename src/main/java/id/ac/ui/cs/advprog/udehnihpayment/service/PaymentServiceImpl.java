@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,9 +41,6 @@ public class PaymentServiceImpl implements PaymentService {
     @Autowired
     private CreditCardStrategy creditCardStrategy;
 
-    @Value("${services.course.api-key}")
-    private String courseApiKey;
-
     @Value("${services.dashboard.api-key}")
     private String dashboardApiKey;
 
@@ -52,13 +50,11 @@ public class PaymentServiceImpl implements PaymentService {
             PaymentRepository paymentRepository,
             CourseServiceClient courseServiceClient,
             DashboardServiceClient dashboardServiceClient,
-            @Value("${services.course.api-key}") String courseApiKey,
             @Value("${services.dashboard.api-key}") String dashboardApiKey,
             List<PaymentStrategy> paymentStrategies) {
         this.paymentRepository = paymentRepository;
         this.courseServiceClient = courseServiceClient;
         this.dashboardServiceClient = dashboardServiceClient;
-        this.courseApiKey = courseApiKey;
         this.dashboardApiKey = dashboardApiKey;
         this.paymentStrategies = paymentStrategies;
     }
@@ -99,7 +95,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public Payment processPayment(Long transactionId, String paymentMethod) {
+    public Payment processPayment(UUID transactionId, String paymentMethod) {
         Payment payment = paymentRepository.findByTransactionId(transactionId);
         PaymentMethod method = PaymentMethod.fromString(paymentMethod);
         if (payment == null) {
@@ -132,12 +128,12 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public Payment findByTransactionId(Long transactionId) {
+    public Payment findByTransactionId(UUID transactionId) {
         return paymentRepository.findByTransactionId(transactionId);
     }
 
     @Override
-    public Payment updatePaymentStatus(Long transactionId, PaymentDetailDTO.Details updateRequest) {
+    public Payment updatePaymentStatus(UUID transactionId, PaymentDetailDTO.Details updateRequest) {
         Payment payment = findByTransactionId(transactionId);
         
         if (payment == null) {
@@ -196,7 +192,7 @@ public class PaymentServiceImpl implements PaymentService {
                     payment.getPaymentDetails().getApprovedBy() + 
                     " at " + payment.getPaymentDetails().getApprovedAt());
         
-        courseServiceClient.updateEnrollmentStatus(courseApiKey, paymentData);
+        courseServiceClient.updateEnrollmentStatus(paymentData);
     }
 
     private void notifyDashboardAboutPayment(Payment payment) {
@@ -227,7 +223,7 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
-    public Payment processCreditCardPayment(Long transactionId, String cardNumber, String cvc, String expiryDate) {
+    public Payment processCreditCardPayment(UUID transactionId, String cardNumber, String cvc, String expiryDate) {
         Payment payment = findByTransactionId(transactionId);
         if (payment == null) {
             throw new IllegalArgumentException("Payment not found");
@@ -246,7 +242,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
-    public Payment confirmBankTransfer(Long transactionId, Long userId) {        
+    public Payment confirmBankTransfer(UUID transactionId, Long userId) {        
         Payment payment = findByTransactionId(transactionId);
         if (payment == null) throw new TransactionNotFoundException("Payment not found");
         

@@ -3,13 +3,14 @@ package id.ac.ui.cs.advprog.udehnihpayment.dto.response;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class PaymentDetailDTO {
-    private Long transactionId;
+    private UUID transactionId;
     private Long courseId;
     private Long userId;
     private String courseTitle;

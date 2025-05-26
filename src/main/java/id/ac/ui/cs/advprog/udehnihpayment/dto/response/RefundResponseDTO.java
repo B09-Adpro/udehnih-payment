@@ -1,5 +1,7 @@
 package id.ac.ui.cs.advprog.udehnihpayment.dto.response;
 
+import java.util.UUID;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,8 +12,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class RefundResponseDTO {
-    private Long refundId;
-    private Long transactionId;
+    private UUID refundId;
+    private UUID transactionId;
     private String status;
     private String message;
     private String note;

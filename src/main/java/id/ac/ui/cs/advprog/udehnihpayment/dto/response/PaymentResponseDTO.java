@@ -7,13 +7,14 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class PaymentResponseDTO {
-    private Long transactionId;
+    private UUID transactionId;
     private Long courseId;
     private Long userId;
     private String courseTitle;

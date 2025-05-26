@@ -32,13 +32,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 // Implementasi HLN pada Controller
 @RestController
 @RequestMapping("/api/payments")
 public class PaymentController {
-
     private final PaymentService paymentService;
     private final RefundService refundService;
     private final PaymentMapper paymentMapper;
@@ -114,7 +114,7 @@ public class PaymentController {
 
     @GetMapping("/{transactionId}")
     public ResponseEntity<?> getTransactionDetails(
-        @PathVariable("transactionId") Long transactionId,
+        @PathVariable("transactionId") UUID transactionId,
         @RequestHeader(value = "X-API-Key", required = false) String apiKey,
         @AuthenticationPrincipal AppUserDetails userDetails) {
         
@@ -161,7 +161,7 @@ public class PaymentController {
     }
 
     @PostMapping("/{transactionId}/bank-transfer")
-    public ResponseEntity<PaymentResponseDTO> processBankTransferPayment(@PathVariable("transactionId") Long transactionId) {
+    public ResponseEntity<PaymentResponseDTO> processBankTransferPayment(@PathVariable("transactionId") UUID transactionId) {
         try {
             Payment processedPayment = paymentService.processPayment(
                     transactionId,
@@ -180,7 +180,7 @@ public class PaymentController {
     private CreditCardStrategy creditCardStrategy;
     @PostMapping("/{transactionId}/credit-card")
     public ResponseEntity<?> processCreditCardPayment(
-            @PathVariable("transactionId") Long transactionId,
+            @PathVariable("transactionId") UUID transactionId,
             @RequestBody CreditCardRequestDTO request) {
         try {
             // Validasi input credit card
@@ -212,7 +212,7 @@ public class PaymentController {
 
     @PostMapping("/{transactionId}/refund")
     public ResponseEntity<RefundResponseDTO> requestRefund(
-            @PathVariable("transactionId") Long transactionId,
+            @PathVariable("transactionId") UUID transactionId,
             @RequestBody RefundRequestDTO refundRequest,
             @AuthenticationPrincipal AppUserDetails userDetails) {
 
@@ -248,7 +248,7 @@ public class PaymentController {
 
     @PutMapping("/{transactionId}/status")
     public ResponseEntity<PaymentResponseDTO> updatePaymentStatus(
-            @PathVariable("transactionId") Long transactionId,
+            @PathVariable("transactionId") UUID transactionId,
             @RequestBody PaymentDetailDTO.Details updateRequest,
             @RequestHeader(value = "X-API-Key", required = true) String apiKey) {
 
@@ -272,7 +272,7 @@ public class PaymentController {
 
     @PutMapping("refunds/{refundId}/status")
     public ResponseEntity<RefundResponseDTO> updateRefundStatus(
-            @PathVariable("refundId") Long refundId,
+            @PathVariable("refundId") UUID refundId,
             @RequestParam("status") String status,
             @RequestParam("approvedBy") String approvedBy,
             @RequestHeader(value = "X-API-Key", required = true) String apiKey) {
@@ -387,7 +387,7 @@ public class PaymentController {
 
     @GetMapping("/refunds/{refundId}")
     public ResponseEntity<?> getRefundDetails(
-            @PathVariable("refundId") Long refundId,
+            @PathVariable("refundId") UUID refundId,
             @RequestHeader(value = "X-API-Key", required = true) String apiKey) {
         
         // Validate API key
@@ -408,7 +408,7 @@ public class PaymentController {
 
     @PostMapping("/{transactionId}/confirm-transfer")
     public ResponseEntity<PaymentResponseDTO> confirmBankTransfer(
-            @PathVariable("transactionId") Long transactionId,
+            @PathVariable("transactionId") UUID transactionId,
             @AuthenticationPrincipal AppUserDetails userDetails) {
         Payment payment = paymentService.confirmBankTransfer(transactionId, userDetails.getId());
         return ResponseEntity.ok(paymentMapper.toResponseDto(payment));

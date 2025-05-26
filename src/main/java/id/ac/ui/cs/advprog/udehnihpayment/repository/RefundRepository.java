@@ -5,11 +5,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface RefundRepository extends JpaRepository<Refund, Long> {
+public interface RefundRepository extends JpaRepository<Refund, UUID> {
 
-    Refund findByPayment_TransactionId(Long transactionId);
-    List<Refund> findByPaymentTransactionId(Long transactionId);
+    Refund findByPayment_TransactionId(UUID transactionId);
+    List<Refund> findByPaymentTransactionId(UUID transactionId);
     List<Refund> findAll();
 }

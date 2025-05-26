@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class RefundServiceImpl implements RefundService {
@@ -42,7 +43,7 @@ public class RefundServiceImpl implements RefundService {
     private String dashboardApiKey;
 
     @Override
-    public Refund requestRefund(Long transactionId, String reason, String details) {
+    public Refund requestRefund(UUID transactionId, String reason, String details) {
         Payment payment = paymentRepository.findByTransactionId(transactionId);
 
         // Error 404 - Transaction not found
@@ -85,7 +86,7 @@ public class RefundServiceImpl implements RefundService {
     }
 
     @Override
-    public Refund updateRefundStatus(Long refundId, RefundStatus status, String approvedBy) {
+    public Refund updateRefundStatus(UUID refundId, RefundStatus status, String approvedBy) {
         Refund refund = refundRepository.findById(refundId)
                 .orElseThrow(() -> new RuntimeException("Refund not found with ID: " + refundId));
         
@@ -109,7 +110,7 @@ public class RefundServiceImpl implements RefundService {
     }
 
     @Override
-    public Refund findById(Long refundId) {
+    public Refund findById(UUID refundId) {
         return refundRepository.findById(refundId)
                 .orElseThrow(() -> new RuntimeException("Refund not found with ID: " + refundId));
     }
@@ -162,6 +163,6 @@ public class RefundServiceImpl implements RefundService {
         paymentData.put("refundId", refund.getId());
         paymentData.put("refundReason", refund.getReason());
         
-        courseServiceClient.updateEnrollmentStatus(courseApiKey, paymentData);
+        courseServiceClient.updateEnrollmentStatus(paymentData);
     }
 }

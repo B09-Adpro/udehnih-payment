@@ -141,17 +141,16 @@ public class PaymentServiceImpl implements PaymentService {
         if (payment == null) {
             throw new TransactionNotFoundException("Payment not found for transactionId: " + transactionId);
         }
-        
-        if (updateRequest.isAdminApproval()) {
+          if (updateRequest.isAdminApproval()) {
             payment.setPaymentStatus(PaymentStatus.PAID);
         }
+        
+        boolean wasApproved = payment.getPaymentDetails() != null && payment.getPaymentDetails().isAdminApproval();
         
         if (payment.getPaymentDetails() == null) {
             payment.setPaymentDetails(new PaymentDetails());
         }
 
-        boolean wasApproved = payment.getPaymentDetails() != null && payment.getPaymentDetails().isAdminApproval();
-        
         PaymentDetails details = payment.getPaymentDetails();
         
         details.setConfirmation(updateRequest.isConfirmation());
@@ -168,10 +167,9 @@ public class PaymentServiceImpl implements PaymentService {
         }
         
         payment.preUpdate();
-        payment = paymentRepository.save(payment);
-
-        if (updateRequest.isAdminApproval() && !wasApproved) {
+        payment = paymentRepository.save(payment);        if (updateRequest.isAdminApproval() && !wasApproved) {
             try {
+                System.out.println("DEBUG: Calling notification services - wasApproved: " + wasApproved + ", isAdminApproval: " + updateRequest.isAdminApproval());
                 notifyCourseService(payment);
                 notifyDashboardAboutPayment(payment);
             } catch (Exception e) {
@@ -259,9 +257,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         if (payment.getExpiresAt() != null && LocalDateTime.now().isAfter(payment.getExpiresAt())) {
             throw new IllegalStateException("Payment has expired. Cannot confirm transfer.");
-        }
-
-        if (payment.getPaymentDetails() == null) payment.setPaymentDetails(new PaymentDetails());
+        }        if (payment.getPaymentDetails() == null) payment.setPaymentDetails(new PaymentDetails());
 
         payment.getPaymentDetails().setConfirmation(true);
         payment.getPaymentDetails().setConfirmedAt(LocalDateTime.now());
@@ -269,9 +265,13 @@ public class PaymentServiceImpl implements PaymentService {
         // Set status ke PENDING
         payment.setPaymentStatus(PaymentStatus.PENDING);
         System.out.println("Setting status to PENDING");
+        System.out.println("DEBUG: Confirmation set to: " + payment.getPaymentDetails().isConfirmation());
+        System.out.println("DEBUG: ConfirmedAt set to: " + payment.getPaymentDetails().getConfirmedAt());
 
         payment.preUpdate();
         Payment savedPayment = paymentRepository.saveAndFlush(payment);
+        System.out.println("DEBUG: Saved payment confirmation: " + savedPayment.getPaymentDetails().isConfirmation());
+        System.out.println("DEBUG: Saved payment confirmedAt: " + savedPayment.getPaymentDetails().getConfirmedAt());
         return savedPayment;
     }
 }

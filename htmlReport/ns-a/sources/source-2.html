@@ -1,0 +1,165 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=windows-1252"> 
+  <title>Coverage Report > CreditCardStrategy</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">id.ac.ui.cs.advprog.udehnihpayment.strategy</a>
+</div>
+
+<h1>Coverage Summary for Class: CreditCardStrategy (id.ac.ui.cs.advprog.udehnihpayment.strategy)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CreditCardStrategy</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    14.3%
+  </span>
+  <span class="absValue">
+    (1/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    5.3%
+  </span>
+  <span class="absValue">
+    (1/19)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package id.ac.ui.cs.advprog.udehnihpayment.strategy;
+&nbsp;
+&nbsp;import id.ac.ui.cs.advprog.udehnihpayment.enums.PaymentMethod;
+&nbsp;import id.ac.ui.cs.advprog.udehnihpayment.model.Payment;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;
+&nbsp;import java.math.BigDecimal;
+&nbsp;
+&nbsp;/**
+&nbsp; * Strategi untuk memproses pembayaran dengan metode Kartu Kredit
+&nbsp; */
+&nbsp;@Component
+<b class="fc">&nbsp;public class CreditCardStrategy implements PaymentStrategy {    @Override</b>
+&nbsp;    public String processPayment(Payment payment) {
+&nbsp;        if (payment == null) {
+&nbsp;            return &quot;Cannot process payment: Payment is null&quot;;
+<b class="nc">&nbsp;        }</b>
+<b class="nc">&nbsp;        // Implementasi proses pembayaran kartu kredit</b>
+&nbsp;        return &quot;Credit Card payment for course ID &quot; + payment.getCourseId() +
+&nbsp;                &quot; with amount &quot; + payment.getAmount() + 
+&nbsp;                &quot; processed successfully.&quot;;
+&nbsp;    }    @Override
+&nbsp;    public String generateInstructions(Payment payment) {
+<b class="nc">&nbsp;        if (payment == null) {</b>
+<b class="nc">&nbsp;            return &quot;Cannot generate instructions: Payment is null&quot;;</b>
+<b class="nc">&nbsp;        }</b>
+<b class="nc">&nbsp;        StringBuilder instructions = new StringBuilder();</b>
+<b class="nc">&nbsp;        instructions.append(&quot;Untuk menyelesaikan pembayaran dengan Kartu Kredit:\n&quot;);</b>
+<b class="nc">&nbsp;        instructions.append(&quot;1. Masukkan nomor kartu kredit (16 digit)\n&quot;);</b>
+<b class="nc">&nbsp;        instructions.append(&quot;2. Masukkan nama pemilik kartu\n&quot;);</b>
+<b class="nc">&nbsp;        instructions.append(&quot;3. Masukkan tanggal kadaluarsa (MM/YY)\n&quot;);</b>
+&nbsp;        instructions.append(&quot;4. Masukkan Card Verification Code (CVC)\n\n&quot;);
+&nbsp;        instructions.append(&quot;Total pembayaran: Rp&quot;).append(payment.getAmount());
+&nbsp;        return instructions.toString();
+&nbsp;    }
+<b class="nc">&nbsp;</b>
+&nbsp;    public boolean validateCardDetails(String cardNumber, String cvc) {
+<b class="nc">&nbsp;        // Validasi nomor kartu: 16 digit angka</b>
+<b class="nc">&nbsp;        boolean validCardNumber = cardNumber != null &amp;&amp; cardNumber.matches(&quot;\\d{16}&quot;);</b>
+&nbsp;        // Validasi CVC: 3 digit angka
+&nbsp;        boolean validCvc = cvc != null &amp;&amp; cvc.matches(&quot;\\d{3}&quot;);
+&nbsp;        return validCardNumber &amp;&amp; validCvc;
+&nbsp;    }
+<b class="nc">&nbsp;</b>
+&nbsp;    public boolean validateExpiryDate(String expiryDate) {
+&nbsp;        // Format MM/YY, MM antara 01-12
+&nbsp;        return expiryDate != null &amp;&amp; expiryDate.matches(&quot;^(0[1-9]|1[0-2])/\\d{2}$&quot;);
+&nbsp;    }
+<b class="nc">&nbsp;      @Override</b>
+<b class="nc">&nbsp;    public boolean validatePayment(Payment payment) {</b>
+<b class="nc">&nbsp;        return payment != null &amp;&amp; </b>
+&nbsp;               payment.getAmount() != null &amp;&amp;
+&nbsp;               payment.getAmount().compareTo(BigDecimal.ZERO) &gt; 0 &amp;&amp;
+&nbsp;               payment.getCourseId() != null;
+&nbsp;    }
+<b class="nc">&nbsp;    </b>
+&nbsp;    @Override
+&nbsp;    public boolean supports(String paymentMethodName) {
+&nbsp;        return PaymentMethod.CREDIT_CARD.getValue().equals(paymentMethodName);
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-27 19:00</div>
+</div>
+</body>
+</html>

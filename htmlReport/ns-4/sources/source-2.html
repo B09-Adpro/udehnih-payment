@@ -1,0 +1,146 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=windows-1252"> 
+  <title>Coverage Report > PaymentMethod</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">id.ac.ui.cs.advprog.udehnihpayment.enums</a>
+</div>
+
+<h1>Coverage Summary for Class: PaymentMethod (id.ac.ui.cs.advprog.udehnihpayment.enums)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">PaymentMethod</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    85.7%
+  </span>
+  <span class="absValue">
+    (6/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    68.8%
+  </span>
+  <span class="absValue">
+    (11/16)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package id.ac.ui.cs.advprog.udehnihpayment.enums;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.annotation.JsonValue;
+&nbsp;
+<b class="fc">&nbsp;public enum PaymentMethod {</b>
+<b class="fc">&nbsp;    BANK_TRANSFER(&quot;Bank Transfer&quot;),</b>
+<b class="fc">&nbsp;    CREDIT_CARD(&quot;Credit Card&quot;);</b>
+&nbsp;
+&nbsp;    private final String value;
+&nbsp;
+<b class="fc">&nbsp;    private PaymentMethod(String value) {</b>
+<b class="fc">&nbsp;        this.value = value;</b>
+<b class="fc">&nbsp;    }</b>
+&nbsp;
+&nbsp;    public String getValue() {
+<b class="fc">&nbsp;        return value;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @JsonValue
+&nbsp;    public String toString() {
+<b class="fc">&nbsp;        return value;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static boolean contains(String text) {
+<b class="nc">&nbsp;        for (PaymentMethod paymentMethod : PaymentMethod.values()) {</b>
+<b class="nc">&nbsp;            if (paymentMethod.value.equalsIgnoreCase(text)) {</b>
+<b class="nc">&nbsp;                return true;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static PaymentMethod fromString(String text) {
+<b class="fc">&nbsp;        for (PaymentMethod paymentMethod : PaymentMethod.values()) {</b>
+<b class="fc">&nbsp;            if (paymentMethod.value.equalsIgnoreCase(text)) {</b>
+<b class="fc">&nbsp;                return paymentMethod;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        throw new IllegalArgumentException(&quot;No payment method with value &quot; + text + &quot; found&quot;);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-27 19:00</div>
+</div>
+</body>
+</html>

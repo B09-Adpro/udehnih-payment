@@ -1,0 +1,229 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=windows-1252"> 
+  <title>Coverage Report > JwtAuthenticationFilter</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">id.ac.ui.cs.advprog.udehnihpayment.security</a>
+</div>
+
+<h1>Coverage Summary for Class: JwtAuthenticationFilter (id.ac.ui.cs.advprog.udehnihpayment.security)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JwtAuthenticationFilter</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    16.7%
+  </span>
+  <span class="absValue">
+    (1/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    2.2%
+  </span>
+  <span class="absValue">
+    (1/46)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package id.ac.ui.cs.advprog.udehnihpayment.security;
+&nbsp;
+&nbsp;import io.jsonwebtoken.Claims;
+&nbsp;import io.jsonwebtoken.Jwts;
+&nbsp;import io.jsonwebtoken.io.Decoders;
+&nbsp;import io.jsonwebtoken.security.Keys;
+&nbsp;import jakarta.servlet.FilterChain;
+&nbsp;import jakarta.servlet.ServletException;
+&nbsp;import jakarta.servlet.http.HttpServletRequest;
+&nbsp;import jakarta.servlet.http.HttpServletResponse;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+&nbsp;import org.springframework.security.core.authority.SimpleGrantedAuthority;
+&nbsp;import org.springframework.security.core.context.SecurityContextHolder;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.springframework.util.StringUtils;
+&nbsp;import org.springframework.web.filter.OncePerRequestFilter;
+&nbsp;
+&nbsp;import java.io.IOException;
+&nbsp;import java.security.Key;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.List;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@Component
+<b class="fc">&nbsp;@Slf4j</b>
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class JwtAuthenticationFilter extends OncePerRequestFilter {
+&nbsp;
+&nbsp;    @Value(&quot;${jwt.secret-key}&quot;)
+&nbsp;    private String secretKey;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+&nbsp;            throws ServletException, IOException {
+&nbsp;
+<b class="nc">&nbsp;        log.info(&quot;JwtAuthenticationFilter: doFilterInternal called for URI: {}&quot;, request.getRequestURI());</b>
+<b class="nc">&nbsp;        log.info(&quot;Authorization Header: {}&quot;, request.getHeader(&quot;Authorization&quot;));</b>
+&nbsp;
+&nbsp;        try {
+<b class="nc">&nbsp;            String jwt = parseJwt(request);</b>
+<b class="nc">&nbsp;            if (jwt != null &amp;&amp; validateJwt(jwt)) {</b>
+<b class="nc">&nbsp;                Claims claims = extractAllClaims(jwt);</b>
+&nbsp;
+<b class="nc">&nbsp;                String subjectStr = claims.getSubject();</b>
+<b class="nc">&nbsp;                Long studentId = Long.parseLong(subjectStr);</b>
+&nbsp;
+<b class="nc">&nbsp;                String email = claims.get(&quot;email&quot;, String.class);</b>
+&nbsp;
+<b class="nc">&nbsp;                log.info(&quot;JWT Claims for user {}: {}&quot;, email, claims.toString());</b>
+&nbsp;
+<b class="nc">&nbsp;                List&lt;String&gt; rolesFromClaim = claims.get(&quot;authorities&quot;, List.class);</b>
+&nbsp;
+<b class="nc">&nbsp;                List&lt;SimpleGrantedAuthority&gt; authorities = Collections.singletonList(</b>
+&nbsp;                        new SimpleGrantedAuthority(&quot;ROLE_STUDENT&quot;)
+&nbsp;                );
+&nbsp;
+<b class="nc">&nbsp;                log.info(&quot;Extracted authorities for user {}: {}&quot;, email, authorities);</b>
+&nbsp;
+<b class="nc">&nbsp;                if (rolesFromClaim != null) {</b>
+<b class="nc">&nbsp;                    authorities = rolesFromClaim.stream()</b>
+<b class="nc">&nbsp;                            .map(SimpleGrantedAuthority::new)</b>
+<b class="nc">&nbsp;                            .collect(Collectors.toList());</b>
+<b class="nc">&nbsp;                    log.debug(&quot;User {} has authorities from token: {}&quot;, email, authorities);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    log.warn(&quot;No &#39;authorities&#39; claim found in JWT for user {}. Assigning no specific authorities.&quot;, email);</b>
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                AppUserDetails studentDetails = new AppUserDetails(</b>
+&nbsp;                        studentId,
+&nbsp;                        email,
+&nbsp;                        authorities
+&nbsp;                );
+&nbsp;
+<b class="nc">&nbsp;                UsernamePasswordAuthenticationToken authentication =</b>
+&nbsp;                        new UsernamePasswordAuthenticationToken(studentDetails, jwt, authorities);
+&nbsp;
+<b class="nc">&nbsp;                SecurityContextHolder.getContext().setAuthentication(authentication);</b>
+&nbsp;
+<b class="nc">&nbsp;                log.info(&quot;User {} successfully authenticated with authorities: {}&quot;, studentDetails.getUsername(), authentication.getAuthorities());</b>
+&nbsp;            }
+<b class="nc">&nbsp;        } catch (Exception e) {</b>
+<b class="nc">&nbsp;            log.error(&quot;Cannot set authentication: {}&quot;, e.getMessage(), e);</b>
+<b class="nc">&nbsp;        }</b>
+&nbsp;
+<b class="nc">&nbsp;        filterChain.doFilter(request, response);</b>
+<b class="nc">&nbsp;    }</b>
+&nbsp;
+&nbsp;    private String parseJwt(HttpServletRequest request) {
+<b class="nc">&nbsp;        String headerAuth = request.getHeader(&quot;Authorization&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (StringUtils.hasText(headerAuth) &amp;&amp; headerAuth.startsWith(&quot;Bearer &quot;)) {</b>
+<b class="nc">&nbsp;            return headerAuth.substring(7);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean validateJwt(String token) {
+&nbsp;        try {
+<b class="nc">&nbsp;            Jwts.parser()</b>
+<b class="nc">&nbsp;                    .setSigningKey(getSigningKey())</b>
+<b class="nc">&nbsp;                    .build()</b>
+<b class="nc">&nbsp;                    .parseClaimsJws(token);</b>
+<b class="nc">&nbsp;            return true;</b>
+<b class="nc">&nbsp;        } catch (Exception e) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Claims extractAllClaims(String token) {
+<b class="nc">&nbsp;        return Jwts.parser()</b>
+<b class="nc">&nbsp;                .setSigningKey(getSigningKey())</b>
+<b class="nc">&nbsp;                .build()</b>
+<b class="nc">&nbsp;                .parseClaimsJws(token)</b>
+<b class="nc">&nbsp;                .getBody();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Key getSigningKey() {
+<b class="nc">&nbsp;        byte[] keyBytes = Decoders.BASE64.decode(secretKey);</b>
+<b class="nc">&nbsp;        return Keys.hmacShaKeyFor(keyBytes);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-27 19:00</div>
+</div>
+</body>
+</html>

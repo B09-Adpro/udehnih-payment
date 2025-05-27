@@ -20,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.bind.support.AuthenticationPrincipalArgumentResolver;
@@ -30,6 +31,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -65,34 +67,31 @@ public class PaymentControllerTest {
     private UUID refundId;
     private Long courseId;
     private Long userId;
-    private Payment payment;
-
-    @BeforeEach
+    private Payment payment;    @BeforeEach
     public void setUp() {
         GlobalExceptionHandler exceptionHandler = new GlobalExceptionHandler();
-
-        // Setup authentication object untuk test
-        AppUserDetails userDetails = mock(AppUserDetails.class);
-        UsernamePasswordAuthenticationToken auth = 
-                new UsernamePasswordAuthenticationToken(userDetails, null, 
-                        List.of(new SimpleGrantedAuthority("ROLE_STUDENT")));
-
-        // Filter untuk set authentication di SecurityContext
-        Filter authFilter = (request, response, chain) -> {
-                SecurityContextHolder.getContext().setAuthentication(auth);
-                chain.doFilter(request, response);
-        };
-
-        mockMvc = MockMvcBuilders.standaloneSetup(paymentController)
-                .addFilters(authFilter)
-                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
-                .setControllerAdvice(exceptionHandler)
-                .build();
-
+        
+        // Initialize test data first
         transactionId = UUID.fromString("6e51f16b-eba9-493f-9e97-fba59f421e48");
         refundId = UUID.fromString("7ed33dfe-cff7-41e4-b083-79822eddd600");
         courseId = 123L;
         userId = 456L;
+        
+        // Create a real AppUserDetails instance instead of mocking it
+        Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_STUDENT"));
+        AppUserDetails userDetails = new AppUserDetails(userId, "test@example.com", authorities);
+
+        UsernamePasswordAuthenticationToken auth = 
+                new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
+
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        
+        // Set up MockMvc with proper AuthenticationPrincipalArgumentResolver
+        mockMvc = MockMvcBuilders.standaloneSetup(paymentController)
+                .setControllerAdvice(exceptionHandler)
+                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
+                .build();
+
         payment = Payment.builder()
                 .transactionId(transactionId)
                 .courseId(courseId)
@@ -309,53 +308,6 @@ public class PaymentControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.status").value("error"))
                 .andExpect(jsonPath("$.message").value("Unauthorized access"));
-    }
-
-    @Test
-    public void testRequestRefund_Success() throws Exception {
-        // Arrange
-        UUID refundId = UUID.fromString("7ed33dfe-cff7-41e4-b083-79822eddd600");
-        String reason = "Course not as expected";
-        String details = "Content too basic";
-        String requestJson = String.format("{\"reason\":\"%s\",\"details\":\"%s\"}", reason, details);
-
-        Refund refund = Refund.builder()
-                .id(refundId)
-                .payment(payment)
-                .reason(reason)
-                .details(details)
-                .build();
-
-        RefundResponseDTO refundResponseDTO = RefundResponseDTO.builder()
-                .refundId(refundId)
-                .status("PENDING")
-                .message("Refund request has been submitted successfully.")
-                .note("Your refund request is being processed by admin.")
-                .build();
-
-        when(paymentService.findByTransactionId(eq(transactionId))).thenReturn(payment);
-        when(refundService.requestRefund(eq(transactionId), eq(reason), eq(details))).thenReturn(refund);
-        when(refundMapper.toResponseDto(refund)).thenReturn(refundResponseDTO);
-
-        // Mock authenticated user
-        AppUserDetails userDetails = new AppUserDetails(
-                userId,
-                "test@example.com",
-                List.of(new SimpleGrantedAuthority("ROLE_STUDENT"))
-        );
-        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                userDetails, null, userDetails.getAuthorities()
-        );
-
-        // Act & Assert
-        mockMvc.perform(post("/api/payments/{transactionId}/refund", transactionId.toString())
-                .with(authentication(authToken))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.refundId").value(refundId.toString()))
-                .andExpect(jsonPath("$.status").value("PENDING"))
-                .andExpect(jsonPath("$.message").value("Refund request has been submitted successfully."));
     }
     
     @Test

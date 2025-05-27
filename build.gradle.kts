@@ -42,6 +42,8 @@ dependencies {
 	implementation("io.github.cdimascio:java-dotenv:5.2.2")
 	implementation("io.jsonwebtoken:jjwt-api:0.12.5")
 	implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("io.micrometer:micrometer-registry-prometheus")
 
 	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")

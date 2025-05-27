@@ -4,7 +4,8 @@ public enum Bank {
     BCA("Bank Central Asia", "123-456-7890", "Udehnih"),
     BNI("Bank Negara Indonesia", "987-654-3210", "Udehnih"),
     MANDIRI("Bank Mandiri", "456-789-0123", "Udehnih"),
-    BRI("Bank Rakyat Indonesia", "789-012-3456", "Udehnih");
+    BRI("Bank Rakyat Indonesia", "789-012-3456", "Udehnih"),
+    CIMB("CIMB Niaga", "998-877-6655", "PT Udehnih");
 
     private final String bankName;
     private final String accountNumber;

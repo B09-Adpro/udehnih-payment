@@ -50,14 +50,16 @@ public class PaymentServiceImpl implements PaymentService {
             PaymentRepository paymentRepository,
             CourseServiceClient courseServiceClient,
             DashboardServiceClient dashboardServiceClient,
-            @Value("${services.dashboard.api-key}") String dashboardApiKey,
+            @Value("${services.dashboard.api-key}") 
+            String dashboardApiKey,
+
             List<PaymentStrategy> paymentStrategies) {
-        this.paymentRepository = paymentRepository;
-        this.courseServiceClient = courseServiceClient;
-        this.dashboardServiceClient = dashboardServiceClient;
-        this.dashboardApiKey = dashboardApiKey;
-        this.paymentStrategies = paymentStrategies;
-    }
+                this.paymentRepository = paymentRepository;
+                this.courseServiceClient = courseServiceClient;
+                this.dashboardServiceClient = dashboardServiceClient;
+                this.dashboardApiKey = dashboardApiKey;
+                this.paymentStrategies = paymentStrategies;
+            }
 
     @Override
     public Payment createPayment(Payment payment) {
@@ -71,7 +73,7 @@ public class PaymentServiceImpl implements PaymentService {
         Payment saved = paymentRepository.save(payment);
 
         PaymentStrategy strategy = findStrategy(saved.getPaymentMethod());
-        String instructions = strategy.generateInstructions(saved);
+        String instructions = strategy.processPayment(saved);
         System.out.println("Payment Instructions: " + instructions);
 
         return saved;
@@ -140,12 +142,10 @@ public class PaymentServiceImpl implements PaymentService {
             throw new TransactionNotFoundException("Payment not found for transactionId: " + transactionId);
         }
         
-        // Update payment status berdasarkan approval status
         if (updateRequest.isAdminApproval()) {
             payment.setPaymentStatus(PaymentStatus.PAID);
         }
         
-        // Pastikan objek PaymentDetails ada
         if (payment.getPaymentDetails() == null) {
             payment.setPaymentDetails(new PaymentDetails());
         }

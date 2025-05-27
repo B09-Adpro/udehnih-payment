@@ -2,9 +2,9 @@ name: Java CI/CD with Staging Deployment
 
 on:
   push:
-    branches: [ ci-cd ]
+    branches: [ development ]
   pull_request:
-    branches: [ ci-cd ]
+    branches: [ development ]
 
 jobs:
   build:
